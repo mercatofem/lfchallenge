@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Fuera de buscadores, archivadores y rastreadores de IA. Es una PETICION,
+     no una barrera: los buscadores grandes la respetan y un raspador que no
+     quiera, no. Lo unico que impide el acceso de verdad es pedir credenciales
+     delante del sitio. Va acompañado de robots.txt, que dice lo mismo para
+     quien mire ahi primero.
+     Ademas, build-sitio.mjs comprueba que el noindex siga aqui y falla si no
+     esta: publicar de mas no avisa solo. -->
+<meta name="robots" content="noindex, nofollow, noarchive, noimageindex">
+<meta name="googlebot" content="noindex, nofollow">
+<meta name="GPTBot" content="noindex, nofollow">
+<meta name="CCBot" content="noindex, nofollow">
+<title>LFChallenge Mercato — LF Challenge · 26/27</title>
+<!-- El icono va en un fichero APARTE del logo de la cabecera, y por dos razones.
+     Fondo blanco: el logo es azul claro sobre transparente y en una pestaña
+     clara se pierde; ese mismo fondo en la cabecera seria un recuadro. Y
+     CUADRADO: lfchallenge.png es 839x712 -aqui ponia "es cuadrado", heredado de
+     LF2, y no lo era-, y un favicon se escala a una caja cuadrada, asi que el
+     apaisado sale deformado. El icono lo centra sobre 839x839.
+     Se genera desde lfchallenge.png; si cambia el logo hay que rehacerlo. -->
+<link rel="icon" href="./img/lfchallenge-icono.png">
+<!-- Instalable, igual que N1. El manifiesto vive en la RAIZ del sitio publicado
+     -`sitio.mjs` lo copia de `web/`- porque el ambito de un service worker es su
+     propio directorio y desde /web/ no podria controlar la pagina de inicio.
+     `theme_color` tiñe la barra del sistema al abrirla instalada, asi que va
+     igual que el acento de la liga.
+     Estaba solo en N1: las tres webs son clonicas salvo colores y datos, y estas
+     tres lineas eran divergencia por descuido, no por liga. Medido el 21-08
+     comparando los tres <head>. -->
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#3bbcf4">
+<meta name="apple-mobile-web-app-title" content="LFCh Mercato">
+<!-- Las tres hojas, y en este orden: tokens (identicos en los tres repos), la
+     base compartida que se copia del motor, y al final lo propio de esta liga,
+     que es lo unico que puede pisar a las anteriores. -->
+<link rel="stylesheet" href="./estilos/tokens.css">
+<link rel="stylesheet" href="./estilos/base.css">
+<link rel="stylesheet" href="./estilos/liga.css">
+</head>
+<body>
+
+<div class="barra-sup">
+  <div class="envoltura cabecera">
+    <div class="marca">
+      <!-- El logo va DELANTE del nombre y no en su lugar: el escudo dice de que
+           competicion es y "Mercato" dice que es esto, y hacen falta los dos.
+           `width` y `height` declarados para que reserve su hueco antes de
+           cargar y la cabecera no pegue un salto.
+           Es el PNG oficial de LF Challenge, de donde sale ademas el acento de toda
+           la web (ver el bloque 0 de liga.css). -->
+      <h1 class="marca-nombre"><img class="marca-escudo" src="./img/lfchallenge.png"
+           alt="" width="36" height="36" decoding="async"><!--
+        -->
+        <span class="marca-texto">LF Challenge <span>Mercato</span></span></h1>
+      <div class="marca-dcha">
+        <!-- El nombre de la competicion va en su propio span porque en movil se
+             esconde: ya esta en la marca y en el titulo de la pestaña, y ahi lo
+             que hace falta es que la temporada quepa en la misma linea. -->
+        <p class="lema"><span class="lema-competicion">LF Challenge · FEB</span><br><span id="sub">Cargando…</span></p>
+        <button type="button" id="verFiltros" class="plegar" aria-expanded="true" aria-controls="cajaFiltros" title="Mostrar u ocultar los filtros">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+      </div>
+    </div>
+    <!-- Nace PLEGADO: si no, el primer pintado sale con la barra abierta y el JS la
+         cierra un instante despues. Ese parpadeo se ve en cada carga en movil.
+         El estado real lo decide `comoArranca()` en cuanto corre; esto solo evita
+         enseñar por defecto el que casi nunca toca. -->
+    <div class="caja-filtros plegado" id="cajaFiltros">
+    <div class="filtros">
+      <!-- Dos formas de leer lo mismo. Las tarjetas contestan "qué ha hecho este
+           club"; la cronología, "qué ha pasado esta semana". Todo el motor de
+           esa vista esta en base.js: aqui solo se DECLARA, y la liga que no lo
+           declare se queda con las tarjetas sin tocar nada. -->
+      <label class="campo"><span>Vista</span><select id="fVista">
+        <!-- La PRIMERA manda: un <select> sin nada marcado cae a su primera
+             opcion, y de ahi lee el motor cual es la vista por defecto. Antes
+             se decia con un `selected` en la segunda; ponerla la primera dice lo
+             mismo sin una marca que explicar, y ademas deja el desplegable en
+             orden de uso: lo que se mira siempre, arriba. -->
+        <option value="cronologia">Cronología</option>
+        <option value="equipos">Equipos</option>
+      </select></label>
+      <label class="campo"><span>Temporada</span><select id="fTemporada"></select></label>
+      <!-- Va CON el de Vista: los dos son la vista cronologica, y declarar uno
+           sin el otro deja la lista entera sin forma de acotarla. La ventana
+           cuenta hacia atras desde hoy e INCLUYE hoy, asi que 1 es "lo de hoy" y
+           7 "esta semana". Vacio -o cero- es todo, y lo dice el placeholder: un
+           0 al lado de "ULTIMOS DIAS" se lee como "cero dias".
+           El JS lee el `max` de aqui, asi que cambiar el tope es cambiarlo ahi.
+           DETRAS de Temporada, no delante: asi los dos campos que sobreviven a
+           la cronologia no se intercambian el sitio al cambiar de vista. -->
+      <label class="campo"><span>Últimos días</span><input id="fDias" type="number"
+             min="0" max="30" step="1" inputmode="numeric" placeholder="todo"
+             title="Cuántos días atrás mirar, contando hoy. Vacío o 0 son todos los anuncios de la temporada."></label>
+      <!-- La liga son DOS grupos de 14, no una lista de 28: el grupo es el eje
+           por el que se lee, no un filtro accesorio. Por eso "todos" no es
+           "todos revueltos" — se pintan las dos rejillas, cada una con su
+           titulo. No hay filtro de provincia: LF Challenge es estatal.
+           Las opciones las rellena el JS con los grupos que traiga el JSON, no
+           van escritas aqui: una liga de un solo grupo no tiene que tocar su
+           HTML, y un grupo que desaparece de una temporada deja de ofrecerse. -->
+      <label class="campo"><span>Grupo</span><select id="fGrupo"></select></label>
+      <!-- Equipo NO es un <select>: ver el bloque .combo en los estilos. -->
+      <div class="campo combo"><span id="fEquipoEtiqueta">Equipo</span>
+        <button type="button" id="fEquipoBtn" aria-haspopup="listbox" aria-expanded="false"
+                aria-labelledby="fEquipoEtiqueta fEquipoBtn">Todos</button>
+        <ul id="fEquipoLista" role="listbox" aria-labelledby="fEquipoEtiqueta" hidden></ul>
+      </div>
+      <!-- Los dos interruptores filtran cosas distintas y por eso van juntos: el
+           primero decide QUE EQUIPOS se ven, el segundo que FILAS se ven dentro
+           de sus plantillas. Antes el segundo era uno por tarjeta, y con media
+           liga anunciando habia que ir marcandolo equipo por equipo. -->
+      <label class="interruptor"><input type="checkbox" id="fMovimientos"> Solo con movimientos</label>
+      <label class="interruptor"><input type="checkbox" id="fSoloAnuncios"> Solo jugadoras con anuncio</label>
+      <span class="cuenta" id="cuenta"></span>
+    </div>
+    </div>
+  </div>
+</div>
+
+<div class="envoltura contenido">
+  <!-- Los totales y los dos avisos. Es un <dialog> a proposito: en ancho se ve
+       como un bloque mas de la pagina y en movil, donde ocupaban la pantalla
+       entera y al cargar no se veia ni un equipo, se abre como modal desde la
+       linea de aqui debajo. Quien decide cual de las dos cosas es, es el CSS. -->
+  <!-- Lleva la clase `aviso` a proposito: es la misma barra que el aviso legal
+       que hay dentro del panel, y asi las dos se leen igual sin repetir ni una
+       declaracion. El icono es el mismo ⓘ que el de cada tarjeta de equipo. -->
+  <button type="button" class="aviso panel-info-btn" id="verInfo" aria-haspopup="dialog" aria-controls="cajaInfo">
+    <span>Información</span>
+    <svg viewBox="0 0 24 24" aria-hidden="true" data-trazo stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v5.5"/><circle cx="12" cy="7.6" r="1.1" fill="currentColor" stroke="none"/></svg>
+  </button>
+  <dialog class="caja-info" id="cajaInfo">
+  <div class="totales" id="totales"></div>
+  <!-- Hasta donde se ha mirado DE VERDAD. Una tabla vacia porque no hay fichajes
+       y una vacia porque nadie ha barrido esa temporada se ven igual, y no son lo
+       mismo: si no se dice, el silencio se lee como dato. -->
+  <p class="barrido" id="barrido"></p>
+  <div class="aviso" id="avisoFuentes">
+    <p class="texto"><strong>Información no oficial.</strong> Recopilada de las publicaciones
+    públicas de los propios clubes implicados y de los datos públicos de la
+    Federación Española de Baloncesto. Los movimientos se publican tal y como
+    los anuncian los clubes, antes de que existan las licencias federativas, y
+    pueden cambiar o no llegar a concretarse.</p>
+    <!-- Al CANAL, no al bot: el bot es administrador del canal y publica ahi cada
+         movimiento nuevo; quien entra por este enlace se suscribe, no abre una
+         conversacion. La entrada la aprueba el administrador.
+         Encendido el 11-8, cuando el canal empezo a recibir avisos de verdad. El
+         enlace es el de invitacion del propio canal -es privado y no tiene
+         @usuario-, sacado con `getChat`: NO con `exportChatInviteLink`, que
+         revoca el que ya estuviera repartido. -->
+    <a class="bot" href="https://t.me/+2W7uO_zqZ38xNzZk" target="_blank" rel="noopener"
+       title="Canal de Telegram con cada movimiento nuevo. La entrada la aprueba el administrador.">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.9 4.3 18.7 19c-.2 1-.9 1.3-1.7.8l-4.7-3.5-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.8 8.8-8c.4-.3-.1-.5-.6-.2L6.6 12.8 2 11.3c-1-.3-1-1 .2-1.5l18.4-7.1c.8-.3 1.5.2 1.3 1.6z"/></svg>Avisos en Telegram</a>
+  </div>
+  </dialog>
+  <div id="equipos"></div>
+</div>
+
+<script type="module" src="./mercato.js"></script>
+</body>
+</html>
