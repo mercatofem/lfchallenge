@@ -1,0 +1,57 @@
+# AND Mercato no quiere estar en ningun indice: ni buscadores, ni archivadores,
+# ni rastreadores de modelos de IA.
+#
+# Esto es una PETICION y solo la cumple quien quiere. Los rastreadores serios la
+# respetan; un raspador cualquiera la ignora y ni siquiera pedira este fichero.
+# Lo unico que impide el acceso de verdad es poner credenciales delante.
+#
+# La lista con nombre y apellidos existe porque una regla generica no basta:
+# varios de estos rastreadores solo obedecen a su propio User-agent.
+
+User-agent: *
+Disallow: /
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: OAI-SearchBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: meta-externalagent
+Disallow: /
+
+User-agent: ia_archiver
+Disallow: /
+
+User-agent: archive.org_bot
+Disallow: /
