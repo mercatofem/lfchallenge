@@ -1,0 +1,16 @@
+{
+  "name": "LF Challenge Mercato",
+  "short_name": "LFCh Mercato",
+  "description": "Altas, bajas y renovaciones de la Liga Femenina Challenge.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f2f4f7",
+  "theme_color": "#3bbcf4",
+  "icons": [
+    { "src": "./img/lfchallenge-icono.png", "sizes": "839x839", "type": "image/png" },
+    { "src": "./img/lfchallenge-icono.png", "sizes": "839x839", "type": "image/png", "purpose": "maskable" }
+  ]
+}
