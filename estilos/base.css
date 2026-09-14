@@ -1,0 +1,2204 @@
+/* GENERADO — NO EDITAR AQUI.
+   Copia de mercato-motor/web/base.css. Se reescribe sola cada vez que se sirve o se publica el
+   sitio, asi que cualquier cambio hecho en este fichero se pierde sin avisar.
+   Lo compartido se toca en el motor; lo propio de esta liga, en estilos/liga.css. */
+/* Base compartida de los Mercato.
+   =================================================================
+   Esta hoja es el MOTOR de la presentacion: todo lo que se ve igual en AND
+   Mercato, LF2 Mercato y el que venga detras. Se copia tal cual a
+   <repo>/estilos/base.css al servir y al publicar; el fichero copiado esta
+   gitignorado y no se edita alli. El sitio para tocar esto es este.
+
+   El criterio es el mismo del CONTRATO: ¿cambiaria esta linea si la liga fuese
+   otra? Si no, vive aqui. Si si, vive en <repo>/estilos/liga.css.
+
+   Los tokens (color, espaciado, tipografia) vienen de tokens.css, que se carga
+   ANTES que esta hoja y es identico en los tres repos.
+
+   Dos reglas de las que no se sale:
+     - Espaciado y tipografia SIEMPRE por token (--sp-Npx, --t-*), nunca px a
+       mano. Y sin valor de respaldo: tokens.css se carga siempre, asi que
+       `var(--sp-12px, 12px)` solo es ruido que hay que mantener por duplicado.
+       Lo unico que sigue en px son las medidas intrinsecas de un componente
+       —la caja de una foto, el grosor de una linea— porque no son ni espaciado
+       ni texto y no hay token para ellas.
+     - Las rejillas se adaptan por CONTAINER query, nunca por el ancho de la
+       ventana: asi la misma tarjeta cabe igual en la pagina, en un panel
+       estrecho o incrustada.
+
+   Y un aviso sobre el ORDEN, que es lo unico que la huella de huella-css.mjs
+   no puede vigilar: hay bloques aqui abajo que dependen de ir DESPUES de otro
+   con su misma especificidad. Van señalados uno a uno. Reordenar esta hoja sin
+   leer esos avisos cambia lo que se ve sin cambiar la huella. */
+
+  /* El acento pintando TEXTO, que no siempre puede ser el mismo color.
+     Un acento oscuro (el verde de LF2) vale para las dos cosas: rellena una
+     barra y se lee sobre blanco. Uno claro, no. El #01ebce de N1 queda bien de
+     superficie y da 1,52:1 como texto —los numeros de las baldosas y los
+     enlaces se volvian ilegibles—, asi que la liga que tenga ese problema
+     declara aqui su version legible.
+     Por defecto es el propio acento: quien no lo declare se queda como estaba. */
+  :root { --accent-texto: var(--accent); }
+
+  /* Y el de al lado, que es el problema INVERSO: texto encima de un relleno del
+     acento pleno. Aqui lo que decide no es si el acento se lee, sino si se lee
+     lo que va sobre el, y cada liga cae de un lado:
+       N1  acento claro (#01ebce) -> texto oscuro. Con blanco se borraba.
+       LF2 acento marino (#082560) -> texto blanco. Con oscuro se borraba.
+     Por defecto oscuro, que es lo que habia; la liga de acento oscuro declara su
+     version en su liga.css. Un solo color para las dos rompe siempre a una.
+
+     Y el valor es un LITERAL, no `var(--ink)`, que es lo que era antes y estaba mal:
+     `--ink` cambia con el tema SIEMPRE, y el acento no tiene por que. LF2 declara
+     uno para cada tema; N1 y LFCh usan el mismo azul claro en los dos, asi que con
+     `var(--ink)` el texto se iba a casi blanco en oscuro y a casi negro en claro
+     sobre el MISMO azul. Un literal no puede hacer eso.
+
+     BLANCO, y es una DECISION DE DISEÑO, no una de contraste. Estuvo un rato en
+     #19252d porque mide mejor —7,2:1 contra los 1,9:1 del blanco sobre el azul
+     claro de LFCh— y Luismi lo cambio con las tres webs delante: «pon el texto de
+     la opcion seleccionada en blanco para N1 y LFC como ya lo tenemos en LF2».
+     Queda dicho el numero por si alguna vez estorba; se vuelve cambiando esta
+     linea, y solo esta. */
+  :root { --texto-sobre-accent: #fff; }
+
+  /* El ambar de "esto hay que mirarlo". Lo comparten la pastilla `revisar`, el
+     texto de su fila y el fondo, para que se lean como un solo aviso.
+     Va aqui y no en tokens.css porque no es del sistema de color de la marca:
+     es de una herramienta de trabajo, y ademas no se publica —ver sitio.mjs—. */
+  /* La BANDA de las cabeceras teñidas: la barra de arriba, el `thead` de la tabla
+     y su pie. Vive aqui —y no junto a la tabla, que es donde nacio— porque la usa
+     tambien la cabecera de la pagina: «si modificamos el thead, hay que modificar
+     el bgcolor de la navegacion». Un solo numero, y las dos van siempre iguales.
+     Estaba al 10% y a LF2 no le llegaba: su acento es marino, y al 10% sobre blanco
+     da #e6e9ef contra un fondo de pagina #f2f4f7. Doce puntos por canal, o sea nada.
+     Al 18% son treinta y pico y ademas se lee AZUL, que es lo que se pedia.
+     El `color-mix` sobre `--panel` y no sobre blanco: asi sirve igual en las tres
+     ligas y no se rompe en tema oscuro, donde el panel es casi negro. */
+  :root { --banda-tabla: color-mix(in srgb, var(--accent) 18%, var(--panel)); }
+
+  :root { --revisar: #b45309; }
+  :root[data-theme="dark"] { --revisar: #f59e0b; }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: var(--t-body)/1.5 var(--font-sans, system-ui); }
+  .envoltura { max-width: 1350px; margin: 0 auto; padding: 0 var(--sp-16px) var(--sp-56px); }
+  /* En estrecho el margen lateral baja a 8px: son 16px de ancho util por lado
+     que se le devuelven a las tablas, y en un movil eso es una columna. */
+  @media (max-width: 559px) { .envoltura { padding-inline: var(--sp-8px); } }
+  /* Los dos contenedores de consulta de la pagina. Todo lo que se recoloca lo
+     hace mirando el ancho de su contenedor, no el de la ventana. El index.html
+     de cada repo tiene que marcarlos: `<div class="envoltura cabecera">` en la
+     barra superior y `<div class="envoltura contenido">` en el cuerpo. Sin esas
+     dos clases las container queries de mas abajo no disparan nunca y la pagina
+     se queda en su version estrecha para siempre. */
+  .cabecera { container: cabecera / inline-size; }
+  .contenido { container: contenido / inline-size; }
+
+  /* Cabecera fija: titulo y filtros siempre a mano al bajar.
+     Y es ademas el ancla del panel flotante de filtros. Va en la barra ENTERA y
+     no en la envoltura de dentro, para que el fondo llegue de borde a borde. */
+  .barra-sup {
+    position: sticky; top: 0; z-index: 20;
+    background: var(--banda-tabla);
+    /* El acento de la liga y no el gris de siempre: es la unica linea de la
+       pagina que separa la marca del contenido, y teñida cierra la cabecera en
+       vez de solo terminarla. A 2px para que se lea como una barra. */
+    border-bottom: 2px solid var(--accent);
+    box-shadow: 0 2px 10px rgba(22, 34, 43, .06);
+  }
+  .barra-sup .envoltura { padding-top: var(--sp-12px); padding-bottom: var(--sp-12px); }
+  /* Marca a un extremo y competicion al otro. En movil se apilan y el texto
+     vuelve a la izquierda, que centrado o pegado al borde queda descolgado. */
+  .marca { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-16px); flex-wrap: wrap; }
+
+  /* La marca, en sus formas. Cada liga usa UNA segun lo que tenga, y todas viven
+     aqui a proposito: estrenar un logo o retirarlo tiene que ser cambiar el
+     index.html de ese repo y nada mas.
+       - Solo logo: <h1><img class="logo" width height alt="..."></h1>. El SVG no
+         trae width/height propios, solo viewBox, asi que el <img> los declara y
+         reserva su hueco antes de cargar.
+       - Escudo y nombre: <h1 class="marca-nombre"><img class="marca-escudo">
+         <span class="marca-texto">Liga <span>Mercato</span></span></h1>.
+       - Solo nombre: lo mismo sin el <img>.
+
+     El envoltorio `.marca-texto` NO es opcional aunque no haya escudo, y por eso
+     va documentado aqui: `.marca-nombre` es un flex con `gap`, y sin envoltorio
+     ese hueco se mete tambien ENTRE las dos palabras y las separa tanto como al
+     escudo. Ademas el estilo del segundo termino cuelga de el: escrito como
+     `.marca-nombre span` casaba los dos y el nombre de la liga perdia su color
+     de acento. */
+  .logo { height: 60px; width: auto; display: block; }
+  .marca-nombre {
+    display: flex; align-items: center; gap: var(--sp-10px);
+    margin: 0; font-size: var(--t-h1); font-weight: 800; line-height: 1.1;
+    color: var(--accent-texto); letter-spacing: -.01em;
+  }
+  /* El escudo no se encoge cuando la cabecera se estrecha, que es justo cuando
+     mas falta hace reconocerlo de un vistazo. */
+  .marca-escudo { inline-size: 36px; block-size: 36px; object-fit: contain; flex: none; }
+  .marca-texto { white-space: nowrap; }
+  .marca-texto span { color: var(--ink); font-weight: 300; }
+
+  /* Mobile-first: el lema arranca alineado a la izquierda, como el resto de la
+     columna, y solo se va a la derecha cuando la cabecera es lo bastante ancha
+     para que marca y lema convivan en la misma linea. */
+  .lema { margin: 0; font-size: var(--t-sm); line-height: 1.35; color: var(--muted); text-align: left; }
+  .lema #sub { color: var(--ink); font-weight: 600; }
+  /* CENTRADO, no a la derecha. `.lema` mide lo que su hijo mas ancho —el nombre de
+     la competicion— asi que centrando, el paso de temporada queda centrado DEBAJO
+     de ese nombre en vez de los dos alineados por el borde derecho, que es donde no
+     se veian como una unidad. Lo pidio Luismi: «centra ese label con el selector».
+     El nombre pasa a bloque y el <br> del HTML sobra: con los dos en bloque, el aire
+     entre lineas lo da el margen y se puede medir. Con el <br> quedaba una linea
+     vacia de por medio. */
+  @container cabecera (min-width: 560px) { .lema { text-align: center; } }
+  .lema br { display: none; }
+
+  /* En estrecho la cabecera se queda en lo imprescindible: marca, temporada y
+     chevron, todo en una linea. El nombre de la competicion se cae —ya esta en
+     la marca y en el titulo de la pestaña— y la temporada se abrevia, que es lo
+     unico que de verdad cambia y hay que ver de un vistazo.
+     Antes ocupaba tres lineas y empujaba los equipos fuera de la pantalla. */
+  /* AQUI VIVIERON `.temp-corta`, `.temp-larga` y `.temp-estado`, retiradas el
+     03-09. La idea era cambiar la etiqueta de la temporada por una corta al
+     estrechar, pero NADIE emite esas clases: cero apariciones en el JS y el HTML
+     de las tres ligas, en el motor, y en las tres webs ya construidas. La mitad
+     de JavaScript nunca llego.
+     Se quitan porque enseñaban lo contrario de lo que pasa: quien leia este
+     bloque creia que la cabecera abrevia la temporada, y no la abrevia. Si algun
+     dia se quiere, vuelve con su mitad que la emita. */
+  .lema-competicion { display: block; margin-bottom: var(--sp-8px); }
+  @container cabecera (max-width: 559px) {
+    .lema-competicion, .lema br { display: none; }
+    .marca { flex-wrap: nowrap; gap: var(--sp-8px); }
+    .marca-nombre { font-size: var(--t-h2); }
+    .marca-escudo { inline-size: 28px; block-size: 28px; }
+    .lema { font-size: var(--t-xs); }
+    /* La temporada, pegada a su chevron y a la altura del nombre. Centrada en
+       la barra quedaba flotando entre las dos cosas sin pertenecer a ninguna;
+       con `baseline` se apoya en la misma linea que la marca y se lee como
+       parte de ella. El hueco baja porque el chevron es su boton: separarlos
+       los convertia en dos elementos sueltos. */
+    .marca-dcha { align-items: baseline; gap: var(--sp-2px); }
+    .plegar { align-self: center; }
+  }
+  .sub { color: var(--muted); font-size: var(--t-xs); margin: 0; }
+
+  /* El lema y el chevron van juntos al extremo derecho; si no, `space-between`
+     los separaria a los tres. */
+  .marca-dcha { display: flex; align-items: center; gap: var(--sp-12px); }
+  /* Solo el icono: sin fondo ni recuadro, que la cabecera ya tiene bastante. */
+  .plegar {
+    display: grid; place-items: center; flex: none; cursor: pointer;
+    width: 30px; height: 30px; padding: 0;
+    background: none; border: 0; color: var(--accent-texto);
+  }
+  .plegar svg { width: 20px; height: 20px; }
+  /* En Cronologia y Revision no queda ni un filtro que enseñar, asi que el chevron
+     y su caja se van enteros —«y el chevron porque ya no habra nada para
+     expandir»—. Y hace falta la regla: `hidden` es `display:none` de la hoja del
+     NAVEGADOR y cualquier regla de aqui con clase le gana, asi que sin esto el
+     atributo se pone y el boton se sigue pintando. Tercera vez hoy. */
+  .plegar[hidden], .caja-filtros[hidden] { display: none; }
+  /* El mismo chevron sirve para los dos estados: abierto mira hacia arriba. */
+  .plegar svg { transition: transform .28s ease; }
+  .plegar[aria-expanded="true"] svg { transform: rotate(180deg); }
+  .plegar:hover { color: color-mix(in srgb, var(--accent) 70%, var(--ink)); }
+  .plegar:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+  @media (prefers-reduced-motion: reduce) { .plegar svg { transition: none; } }
+
+  /* El plegado va con `grid-template-rows` de 1fr a 0fr, que es lo unico que
+     anima bien un alto DESCONOCIDO: con `max-height` hay que inventarse un
+     numero y la animacion sale a trompicones si te pasas o se corta si te
+     quedas corto. El hijo necesita `min-height: 0` y `overflow: hidden` o no
+     encoge. */
+  .caja-filtros {
+    display: grid; grid-template-rows: 1fr;
+    margin-top: var(--sp-10px);
+    transition: grid-template-rows .28s ease, margin-top .28s ease, opacity .2s ease;
+  }
+  .caja-filtros > .filtros { overflow: hidden; min-height: 0; }
+  /* …pero ese `overflow: hidden` RECORTA el desplegable de Equipo, que es una
+     lista absoluta dentro de esta misma caja. Resultado: se abria y no se veia,
+     en las dos webs. El plegado y el combo se estorban, y gana el combo.
+
+     Abierta del todo, la caja deja salir a la lista. El retardo iguala la
+     duracion del plegado: mientras se despliega sigue recortando —si no, el
+     contenido se sale por debajo mientras crece— y solo al terminar suelta el
+     recorte. Al plegar, `.plegado` lo devuelve a `hidden` sin retardo, que es
+     justo lo que hace falta para que la animacion de cierre no se vea rota. */
+  .caja-filtros:not(.plegado) > .filtros { overflow: visible; transition: overflow 0s .28s; }
+  .caja-filtros.plegado { grid-template-rows: 0fr; margin-top: 0; opacity: 0; }
+  @media (prefers-reduced-motion: reduce) { .caja-filtros { transition: none; } }
+
+  /* En estrecho los filtros FLOTAN sobre la pagina en vez de empujarla.
+     Abiertos ocupaban media pantalla y desplazaban los equipos hacia abajo: al
+     cerrarlos, el contenido pegaba un salto y se perdia el sitio donde estabas.
+     Flotando, la pagina no se mueve: se tapa un rato y vuelve a aparecer donde
+     la dejaste.
+     Cuelga de .barra-sup, que es `sticky` y ya tiene z-index, asi que el panel
+     viaja con la cabecera al bajar. El fondo es el mismo tinte de la barra y no
+     translucido: debajo hay tablas con texto, y a traves no se leeria ninguno de
+     los dos. */
+  /* En estrecho, fuera la columna de la FECHA del anuncio. Es la que menos
+     aporta por lo que ocupa —"25/07/2026" son diez caracteres— y el dato no se
+     pierde: viaja en el title del icono de la red, que se queda al lado y
+     ademas es el que lleva a la publicacion.
+     Va por el contenedor del CONTENIDO y no por el de la cabecera: quien decide
+     si la tabla cabe es el ancho de la tarjeta, no el de la barra de arriba. */
+  /* --- La vista cronologica --- */
+  /* Una sola tabla a todo lo ancho, sin masonry ni columnas: aqui el orden es el
+     dato, y partirlo en dos columnas obligaria a leer en zigzag para seguir una
+     fecha. */
+  #equipos.en-cronologia { display: block; }
+  /* `.bloque.cronologia` y no `.cronologia` a secas: la tarjeta lleva las tres
+     clases —`card bloque cronologia`— y `.bloque` tambien pone padding. Con la
+     misma especificidad gana la que va despues en el fichero, que es `.bloque`,
+     asi que el `padding: 0` no llegaba a aplicarse nunca y la tabla salia con
+     12px arriba y abajo. Se sube la especificidad en vez de poner `!important`:
+     el resultado es el mismo y no empieza una escalada en una hoja que
+     comparten tres webs. */
+  .bloque.cronologia { padding: 0; overflow: hidden; }
+  /* Al saltar de pagina la tabla se sube arriba del todo, y arriba del todo esta
+     debajo de la barra pegada. Sin este margen el salto dejaba las dos primeras
+     filas tapadas por la cabecera.
+     Con respaldo, y aqui si toca aunque la hoja diga que no: `--alto-barra` no
+     sale de tokens.css, lo mide el JS al pintar. Es la misma excepcion —y el
+     mismo respaldo— que ya usa `.titulo-grupo` cuando se pega. */
+  .tabla-envoltura { container: tarjeta / inline-size; scroll-margin-top: calc(var(--alto-barra, 56px) + var(--sp-8px)); }
+
+  /* --- Los mandos de la tabla: buscador, recuento, filas por pagina y paginas ---
+     Con ~200 anuncios por temporada, la tabla entera de una vez solo se puede
+     recorrer con el scroll. Estos mandos son los de cualquier tabla de datos, y
+     por eso NO estrenan aspecto: el buscador y el desplegable son `.campo`, el
+     mismo componente que los filtros de la barra de arriba, asi que la tabla se
+     maneja con los controles que ya se sabe manejar. Lo unico propio de aqui son
+     los botones de pagina, que no existian. */
+  /* TINTE FLOJO Y BORDE DE ACENTO, que es como se pintan las cabeceras de la casa.
+     Se probo el acento a plena fuerza en las tres bandas y no es lo que se quiere:
+     «no quiero los colores opacos, quiero los de la cabecera mas claros y usamos
+     bordes». El corte lo da el FILETE, no el relleno; el tinte solo dice que esa
+     banda no es una fila de datos. */
+  .tabla-mandos {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: var(--sp-8px) var(--sp-12px); padding: var(--sp-10px) var(--sp-12px);
+    background: var(--banda-tabla);
+  }
+  /* El pie cierra la tabla con el mismo filete de 2px con el que la abre el `thead`,
+     y por el mismo motivo: es el borde el que separa, no el color. */
+  .tabla-mandos.abajo { border-top: 2px solid var(--accent); }
+  /* La barra de encima del `thead` va pegada a el y con el mismo tinte, asi que sin
+     un filete se leerian como una banda unica de 70px: el rango y los titulos de
+     columna revueltos. Fino y gris, que aqui no hace falta cortar sino separar; el
+     corte de verdad lo da el filete de acento que ya cierra el `thead`. */
+  .tabla-mandos.sobre { border-bottom: 1px solid var(--line); }
+  /* El rango se lee igual que el recuento de la tarjeta: mismo cuerpo, mismo gris y
+     cifras de ancho fijo, que si no el numero baila al pasar de pagina. */
+  .tabla-rango { font-size: var(--t-sm); color: var(--muted); font-variant-numeric: tabular-nums; }
+  /* `hidden` es `display:none` de la hoja del NAVEGADOR, y cualquier regla de aqui
+     con clase le gana: `.tabla-mandos { display: flex }` dejaba el pie a la vista
+     con el atributo puesto. Es la misma trampa que ya tenia documentada `.filtros
+     [hidden]`, y se ve igual de poco: el atributo dice que esta escondido.
+     Se pillo midiendo el `offsetParent` del desplegable —que es lo que de verdad
+     contesta si algo se pinta— en vez de fiarse del atributo. */
+  .tabla-mandos[hidden] { display: none; }
+  /* La tarjeta de mandos, SEPARADA de la de la tabla. Van dobles las clases porque
+     `.card` vive mas abajo en esta hoja y con la misma especificidad le ganaria el
+     fondo y el borde; es el mismo motivo por el que `.bloque.cronologia` los dobla.
+     La separacion es de 12px y no del `--block-gap` de la pagina: son dos mitades
+     del mismo componente y con el hueco grande dejan de leerse juntas.
+     El FONDO tambien se repite aqui, y no es redundante: `.tabla-mandos` ya lo pone,
+     pero `.card` lo pone tambien y con la misma especificidad, asi que gana el que
+     va despues en la hoja —`.card`, que esta 800 lineas mas abajo— y la tarjeta
+     salia BLANCA con el recuento escrito en blanco encima: texto invisible. Se vio
+     midiendo el fondo del padre, no en la captura, donde solo parecia que faltaba
+     el recuento.
+     El borde ENTERO del acento y no solo un filete: esta tarjeta no tiene tabla
+     debajo que la cierre, asi que el que la dibuja es su propio contorno.
+     Y va con la BANDA de fondo, sin borde y sin sombra: no es una tarjeta mas de la
+     pagina, es la cabecera de la tabla que tiene debajo. Con borde y sombra se leia
+     como una tarjeta suelta que compite con la de la tabla; sin ellos, y con el
+     mismo tinte que el `thead`, las dos se leen como una sola cosa en dos piezas.
+     Es `.card` de todos modos —conserva el radio y el sitio en el flujo— asi que
+     estas tres declaraciones son EXACTAMENTE las que la separan del resto, y por eso
+     estan las tres juntas y no repartidas. */
+  .card.tabla-jefe {
+    background: var(--banda-tabla); border: 0; box-shadow: none;
+    margin-bottom: var(--sp-12px);
+  }
+  /* Crece hasta un tope: un buscador a todo lo ancho de la tabla parece pedir una
+     frase, y aqui se teclean dos palabras. */
+  .tabla-buscar { flex: 1 1 14rem; max-width: 22rem; }
+  /* SIN ETIQUETA. Llevaba «BUSCAR» delante y «jugadora o equipo» de sugerencia, y
+     eran dos textos diciendo lo mismo en el mismo hueco. Ahora la sugerencia es
+     «Buscar» y no hay etiqueta; el nombre para un lector de pantalla viaja en el
+     `aria-label`, que es donde tiene que estar.
+     De paso se lleva por delante todo el enredo de alinear dos textos de tamaños
+     distintos —lo de la linea de base— porque ya solo hay uno. Queda dicho por si
+     vuelve: centrar CAJAS y alinear TEXTOS no son lo mismo, y un texto en mayusculas
+     no tiene letras que bajen, asi que su tinta vive en la mitad de arriba de su
+     caja y centrarla la deja flotando.
+     Va DOBLE la clase porque `.campo` declara `min-height` implicito a traves de sus
+     hijos y vive 700 lineas mas abajo; con la misma especificidad ganaria el. */
+  .campo.tabla-buscar { min-height: var(--control-h); }
+  .tabla-buscar input[type="search"] {
+    font: inherit; font-size: var(--t-body); font-weight: 600; color: var(--ink);
+    background: none; border: 0; outline: none; min-width: 0; line-height: 1;
+    width: 100%; padding: 0; appearance: none; -webkit-appearance: none;
+  }
+  /* La cruz de borrar. Solo aparece cuando hay algo escrito —ver `montarTabla`— y
+     no reserva sitio cuando no esta: `flex: none` y sin margen, asi el campo no
+     cambia de ancho al empezar a teclear. */
+  .borrar-buscar {
+    flex: none; display: grid; place-items: center; width: 22px; height: 22px;
+    padding: 0; margin-inline-start: var(--sp-4px); border: 0; border-radius: 4px;
+    background: none; color: var(--muted); cursor: pointer;
+  }
+  .borrar-buscar[hidden] { display: none; }
+  .borrar-buscar:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 10%, transparent); }
+  .borrar-buscar:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  /* La crucecita nativa de WebKit se pinta sobre el fondo del campo y con el tema
+     oscuro se queda casi invisible; el campo se vacia con la tecla igual. */
+  .tabla-buscar input[type="search"]::-webkit-search-cancel-button { appearance: none; -webkit-appearance: none; }
+  .tabla-buscar input[type="search"]::placeholder { color: var(--muted); font-weight: 500; opacity: 1; }
+  /* El foco se dibuja alrededor del CAMPO, no del <input>.
+     Puesto en el input salia un rectangulo que no era el del control: el input ocupa
+     el 100% del campo, asi que su contorno con 2px de separacion caia justo encima
+     del borde redondeado del campo y por delante de la etiqueta «BUSCAR», dejando
+     dos marcos desalineados uno dentro de otro. Se veia en la captura de Luismi.
+     En los desplegables del resto de la pagina no pasa porque un <select> mide lo
+     que mide su texto y le sobra campo por todos lados; este lo llena entero. */
+  .tabla-buscar input[type="search"]:focus-visible { outline: none; }
+  .tabla-buscar:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+  /* Mismo cuerpo y mismo gris que el recuento que vivia en la cabecera de la pagina:
+     es el mismo dato, mudado a donde estan las filas de las que habla. Sobre el
+     tinte flojo el gris de apoyo se lee igual que sobre el panel. */
+  .tabla-cuenta { font-size: var(--t-sm); color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+  /* La corta solo en estrecho; ver el `@container` del final del bloque. */
+  .cuenta-corta { display: none; }
+  /* Este no necesita los 140px de suelo de `.campo`: no esta en una fila de
+     filtros que tenga que dejar de bailar, y con ellos se quedaba medio vacio.
+     DOBLE la clase, que si no no sirve de nada: el suelo lo pone `.campo` y vive
+     700 lineas mas abajo, asi que con la misma especificidad gana el. Escrito
+     simple llevaba horas sin hacer nada y el desplegable seguia midiendo 140px;
+     se vio midiendolo, no leyendolo. */
+  /* Y a la MISMA altura que los botones de pagina, que estan a su lado en la misma
+     barra: el desplegable venia con los 34px de suelo que `.campo select` le pone a
+     todos los filtros de arriba, y al lado de un boton de 36 quedaba un escalon.
+     Se le da la altura al CAMPO y el <select> la llena; asi la altura vive en un
+     solo sitio y las dos piezas de la barra se atan al mismo token.
+     Doble clase en las dos, que si no gana `.campo` y `.campo select`, 700 lineas
+     mas abajo. Van cinco. */
+  .campo.tabla-porpagina { min-width: 0; height: var(--control-h); }
+  .campo.tabla-porpagina select { min-height: 0; height: 100%; }
+  .tabla-paginas { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4px); justify-content: flex-end; }
+  /* Pastillas de `--panel` sobre el tinte flojo del pie, como el resto de controles
+     de la pagina. Vale porque el pie ya NO es un relleno de color: cuando lo fue, la
+     pastilla del que manda tenia que distinguirse a la vez de la barra y de sus
+     vecinas y no habia color con esa garantia. */
+  /* `inline-grid` y no el `inline-block` de un <button>: dentro va un SVG, que es
+     un elemento en linea y por tanto se apoya en la linea de base del boton, o sea
+     descolgado hacia abajo y con el hueco del descendente debajo. Con los numeros
+     no se notaba —son texto y el `text-align` los pone en su sitio— y con las
+     flechas si. Centrado de rejilla y valen los dos. Medido: 9px por los cuatro
+     lados. */
+  .pag {
+    display: inline-grid; place-items: center;
+    min-width: var(--control-h); height: var(--control-h); padding: 0 var(--sp-6px);
+    font: inherit; font-size: var(--t-sm); font-weight: 600; font-variant-numeric: tabular-nums;
+    color: var(--ink); background: var(--panel); border: 1px solid var(--line);
+    border-radius: 6px; cursor: pointer;
+  }
+  /* El mismo gris de resalte que la lista del desplegable de Equipo: al lado de los
+     controles nativos, el acento a plena fuerza cantaba de mas. */
+  .pag:not(:disabled):hover { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+  .pag:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  /* La pagina en la que se esta, rellena de acento: es el unico sitio de la tabla
+     donde el acento rellena de verdad, y por eso funciona. */
+  .pag.aqui { background: var(--accent); border-color: var(--accent); color: var(--texto-sobre-accent); }
+  /* Apagados y no escondidos: si los extremos desaparecieran al llegar al primero
+     o al ultimo, los numeros bailarian de sitio en cada salto. */
+  .pag:disabled { opacity: .35; cursor: default; }
+  /* Los puntos suspensivos van encima del acento, igual que el recuento. */
+  .tabla-paginas .hueco { color: var(--muted); padding: 0 var(--sp-2px); }
+  /* «5 / 9»: la paginacion de movil. Solo se ve en el tramo estrecho; ver abajo. */
+  .pag-de { display: none; }
+  /* La busqueda sin resultados, DENTRO de la tabla: fuera se descuadraria con el
+     scroll horizontal, y la cabecera flotando sobre nada se lee como un fallo. */
+  .sin-resultado td { padding: var(--sp-24px) var(--sp-12px); text-align: center; color: var(--muted); }
+
+  /* En estrecho los mandos dejan de ir a los extremos y pasan a una linea cada
+     cosa: en una sola fila, el recuento —«Mostrando 1–25 de 197 anuncios»— y el
+     buscador se peleaban por el mismo hueco y ninguno cabia.
+     Por container query y contra la TARJETA, no contra la ventana: quien decide
+     si esto cabe es el ancho de la tabla. */
+  @container tarjeta (max-width: 479px) {
+    /* UNA FILA CADA BARRA, tambien aqui. Antes cada cosa se iba a su propia linea y
+       eso son cuatro renglones de pantalla gastados en mandos; en un movil, media
+       pantalla antes de ver un solo anuncio.
+       Cabe porque las tres piezas encogen a la vez: el recuento pasa a su redaccion
+       corta, el desplegable pierde el «por página» y los botones de pagina bajan de
+       36 a 28px. Medido en 360px de ancho: sobra sitio en las dos barras. */
+    .campo.tabla-buscar { flex: 1 1 8rem; max-width: none; min-width: 0; }
+    .tabla-cuenta { flex: 0 0 auto; white-space: nowrap; }
+    .cuenta-larga { display: none; }
+    .cuenta-corta { display: inline; }
+    /* El desplegable conserva su «POR PÁGINA»: medido, cabe. Lo unico que cambia es
+       que baja a la altura de los botones. */
+    .campo.tabla-porpagina { flex: 0 0 auto; height: 28px; padding-inline: var(--sp-8px); }
+    .tabla-rango { flex: 0 0 auto; white-space: nowrap; }
+    .tabla-paginas { flex: 1 1 auto; justify-content: flex-end; flex-wrap: nowrap; }
+    .pag { min-width: 28px; height: 28px; padding: 0 var(--sp-2px); }
+    /* LA LISTA DE NUMEROS SE VA ENTERA y en su sitio queda «5 / 9».
+       No es por tamaño: encogerlos solo aplaza el problema —a 360px no cabe ni con
+       botones de 24px, que ademas ya no se pueden pulsar—. Es que en un telefono se
+       pasa pagina a pagina con las flechas, y saltar a la 7 de 9 pulsando un
+       objetivo diminuto no es algo que nadie haga.
+       PERO PRIMERA Y ULTIMA SE QUEDAN. Estuvieron fuera y no valia: «de la 1 a la 19
+       es una pesadilla navegar». Sin la lista, esos dos botones son la unica forma
+       de moverse mas de un paso, y ocupan 56px de los 89 que sobraban. */
+    .pag:not(.salto), .tabla-paginas .hueco { display: none; }
+    .pag.extremo { display: inline-grid; }
+    .pag-de {
+      display: inline-grid; place-items: center; height: 28px; padding: 0 var(--sp-6px);
+      font-size: var(--t-sm); font-weight: 600; font-variant-numeric: tabular-nums;
+      color: var(--ink); white-space: nowrap;
+    }
+  }
+  /* La fecha manda en esta vista, asi que NO se esconde en estrecho como la de
+     las tarjetas: alli era un adorno al lado del estado y aqui es la columna que
+     ordena todo. Por eso lleva clase propia y no `.anuncio`.
+     Va a la DERECHA, en el mismo sitio que en las tarjetas: quien busca una
+     fecha concreta baja por el borde, y quien lee la noticia empieza por la
+     jugadora, que es el sujeto. */
+  th.cuando, td.cuando { white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--muted); width: 1%; }
+  th.tipo, td.tipo { width: 1%; white-space: nowrap; }
+  /* Estas dos llevan dato corto y centrado, y pegadas al filete se leian
+     apretadas contra la columna de al lado. Al ser `width: 1%` el relleno es
+     justo lo que les da cuerpo: sin el, la columna mide lo que mide la pastilla
+     y ni un pixel mas. */
+  .cronologia th.tipo, .cronologia td.tipo,
+  .cronologia th.cuando, .cronologia td.cuando { padding-inline: var(--sp-16px); }
+  /* Filetes verticales entre celdas, y SOLO en el cuerpo. Con cinco columnas y
+     filas de dos alturas distintas, el ojo perdia la vertical a media tabla;
+     las lineas la sujetan.
+     Van con `+` para que la PRIMERA no lleve —seria un borde suelto contra el
+     margen de la tarjeta— y en el mismo gris que el resto de separadores.
+     En la CABECERA no: ahi la banda de color ya separa las columnas, y los
+     filetes la troceaban en cajitas en vez de dejarla leerse como una barra.
+     Con esto sobra ademas la excepcion que llevaba la cabecera sin titulo de la
+     columna de fuentes, que parecia una columna a la que se le habia olvidado
+     el nombre: ya no hay borde que quitarle. */
+  .cronologia td + td { border-left: 1px solid var(--line); }
+  /* La cabecera de la tabla, RELLENA DE ACENTO, igual que las dos barras de mandos.
+     Ha pasado por tres versiones en un dia y las dos primeras fallaban igual: al
+     10% de acento primero y en gris al 7% despues, o sea siempre un tono claro mas
+     en una pila de tonos claros. Lo que hace falta ahi no es un matiz, es un CORTE:
+     encima estan los mandos y debajo los datos, y esta banda es la que dice donde
+     empieza cada cosa.
+     Sin filete de 2px debajo: era del acento y ahora seria un borde del color del
+     propio fondo. La banda ya se separa ella sola.
+     El texto por `--texto-sobre-accent`, el token que cada liga ajusta a su acento;
+     asi vale igual sobre el marino de LF2 y sobre el azul claro de LFCh y N1, en
+     los dos temas. Medido: 14,5:1 en LF2 y 7,2:1 en LFCh. */
+  .cronologia thead th {
+    background: var(--banda-tabla);
+    border-bottom: 2px solid var(--accent);
+    /* Titulos en tinta normal, y esta es la unica pieza que NO vuelve como estaba.
+       Iban en `--accent-texto` y sobre este tinte se caen en OSCURO: el acento de
+       LF2 en tema oscuro es #2d5bb9 y da **2,61:1** ahi. Con `--ink`, 15,13:1.
+       Medido con el tema puesto a mano, sobre este mismo `color-mix`.
+       No es cosa del rediseño de hoy: venia asi desde que se pinto la tabla, y solo
+       se ve cuando alguien lo mide. El color ahi tampoco hacia falta: lo que dice
+       "esto es la cabecera" es el filete de 2px, no el color de las letras. */
+    color: var(--ink);
+    /* En negrita: la regla base los deja en 600, que con el cuerpo pequeño y las
+       mayusculas se quedaba corto contra el fondo teñido. */
+    font-weight: 700;
+  }
+  /* Y cada fila separada por su filete, del MISMO gris que los verticales: los
+     dos hacen el mismo trabajo -sujetar la retícula- y con dos colores parecian
+     dos cosas distintas.
+     El borde va en el `td` y no en el `tr`: con `border-collapse: collapse` un
+     borde puesto en la fila lo pisa cualquier celda que traiga el suyo, y aqui
+     las hay -la pestaña de MOVIMIENTO va con fondo propio-. */
+  .cronologia tbody td { border-bottom: 1px solid var(--line); }
+  /* Las dos reglas de la columna de Jugadora, que se leen juntas.
+     `width: 1%` la deja al ancho de su contenido y ni un pixel mas: sin ello el
+     navegador reparte el sobrante entre las dos columnas que no piden ancho
+     —jugadora y descripcion— y la de la foto se quedaba 396px para una foto y
+     un nombre. Ese sobrante lo quiere entero la descripcion, que es la unica
+     que crece de verdad.
+     `min-width` es entonces quien decide el ancho real, porque con `width: 1%`
+     la columna se queda en el MINIMO de su contenido. Medido fila a fila: con
+     150px se partian 7 nombres de 24 en dos lineas y la fila mas alta pasaba de
+     57 a 78px; con 260 no se parte ninguno y todas miden igual. La columna
+     queda en 322px, 74 menos que los 396 de antes.
+     El `width: 1%` ya no tiene puerta: vale a CUALQUIER ancho porque la
+     descripcion conserva su columna a cualquier ancho. Estuvo condicionado a
+     750 mientras la descripcion se plegaba ahi, y esa es justo la trampa que
+     hay que recordar: el dia que se quito el plegado, sin tocar esto, la
+     jugadora volvia a comerse el sobrante y la descripcion se quedaba en 40px
+     con el texto partido letra a letra. Las dos reglas van del brazo.
+     Lo que SI cambia con el ancho es el SUELO del nombre, y son DOS tramos. El
+     suelo del nombre y el ancho de la descripcion son el mismo numero visto por
+     los dos lados: cada pixel de suelo se lo quita a la noticia, asi que el
+     suelo sube segun sobra sitio.
+     Por debajo de 750 no hay suelo ninguno: el minimo lo pone el contenido, que
+     es lo que mejor reparte cuando no sobra nada. Hubo tramos de 150 y de 110
+     y se quitaron por sobrar.
+       >=884  260px. No se parte ningun nombre de los 24 y todas las filas miden
+              igual; sobra ancho para que la descripcion crezca igualmente.
+              884 y no 930: el numero de una consulta de contenedor NO es el de
+              la ventana. Mira la caja de CONTENIDO de `.envoltura`, asi que no
+              cuentan ni sus 16px de relleno por lado ni la barra de scroll si
+              esta puesta —de ahi que el desfase con la ventana sea de 32 o de
+              47 segun haya barra, y no un numero fijo—. Vale para todos los
+              umbrales de este fichero, no solo para este.
+              El limite exacto queda por eso algo borroso: la ventana a la que
+              salta depende de si hay barra. Con 884 salta en 931 con barra y en
+              930 sin ella, que es la precision que da esto.
+       >=750  200px. Aqui ya no cabe todo: la columna de MOVIMIENTO todavia
+              ocupa ancho -no se vuelve pestaña hasta 899- y con 260 la noticia
+              se quedaba corta antes que el nombre.
+        <750  sin suelo. Un suelo aqui solo sirve para quitarle ancho a la
+              noticia: 260 ni cabia -a 566px de tarjeta la tabla pedia 587 y
+              volvia el scroll lateral- y 150 dejaba 213 para el nombre contra
+              125 para la descripcion, mas ancho para quien pone el sujeto que
+              para lo que se viene a leer. Que el nombre se parta en dos lineas
+              no cuesta alto: la fila ya la marca la descripcion, que trae dos
+              clubes con su escudo. */
+  .en-cronologia th.jug, .en-cronologia td.jug { width: 1%; }
+  /* El suelo de la columna en movil: 110px, y el numero importa.
+     La regla base de `.nombre` lleva 150px sin condicion, y con ESE suelo se
+     partian nombres de club A MITAD DE PALABRA en la descripcion —"CD
+     PRESENTACIO / N DE GRANADA"—: medido a 390px, 3 en N1 y 15 en LF2; a 360px,
+     31 y 123. El auditor no lo cantaba, porque no hay nada desbordado ni
+     cortado: solo esta partido donde no toca.
+     Se quito el suelo entero y eso lo arreglo, pero dejaba la columna DEMASIADO
+     ESTRECHA a 390px —se ve mirandola, no midiendola—. 110px es el punto medio:
+     40px menos que el que rompia y 110 mas que nada. Medido otra vez a 360, 390
+     y 430 en N1 y en LF2: CERO palabras partidas en los seis casos. */
+  @container contenido (max-width: 749px) {
+    /* Sin suelo de ancho, y el interlineado apretado.
+       En movil el nombre se parte en dos o tres lineas —"Catalina Lopez Linares
+       Marian" son tres en una columna de 140px, "Ana Meca" es una— y con el
+       interlineado normal esa diferencia estiraba la fila de 68px a 133px: el
+       auditor lo cantaba como `filas-descuadradas` a los tres anchos de movil.
+       No era un fallo de maquetacion, era el contenido; lo que se puede hacer es
+       que cada linea de mas cueste menos.
+
+       Va SIN `.en-cronologia`, igual que el `white-space: normal` de mas abajo y
+       por el mismo motivo: la tabla de PLANTILLA tiene el mismo problema y
+       ninguna clase con la que distinguirla. Se quedaba en el suelo de 150 de la
+       regla base y a 360px la columna pedia 212px de los 342 disponibles, con lo
+       que la tabla se salia 21px de su tarjeta. Poder partirse no bastaba: en
+       una tabla `auto` ninguna columna baja de su minimo, y el minimo lo ponia
+       ese suelo. Los tramos de arriba de 750 siguen siendo de la cronologia: son
+       su reparto de columnas, no el de la plantilla. */
+    td.jug .nombre { min-width: 110px; line-height: 1.1; }
+  }
+  @container contenido (min-width: 750px) {
+    .en-cronologia td.jug .nombre { min-width: 200px; }
+  }
+  @container contenido (min-width: 884px) {
+    .en-cronologia td.jug .nombre { min-width: 260px; }
+  }
+
+  /* --- La descripcion del movimiento --- */
+  /* Sustituye a tres columnas —Que, Club y Procedencia— por una sola linea que
+     se lee: "Renueva por X", "Ficha por X", "Deja X" o, cuando conocemos los
+     dos extremos, "ORIGEN -> DESTINO".
+     A la IZQUIERDA, contra el centrado que traen las celdas por defecto. Aqui
+     cada fila mide distinto —hay clubes de tres palabras y de una— y centradas
+     empezaban cada una en un sitio: para comparar dos fichajes habia que ir
+     buscando donde empieza cada frase. Alineadas, se leen en columna. */
+  /* `white-space: normal` contra el `nowrap` que traen todas las celdas. Es la
+     unica de la tabla que PUEDE partirse, y tiene que poder: sin esto su ancho
+     minimo es el de la frase mas larga entera —"CD BALONCESTO HUELVA LA LUZ ->
+     CLUB DEPORTIVO DE TECNICOS AL ANDALUS", 690px— y con eso la tabla pedia
+     1277px. En una tableta de 700 eso devolvia el scroll lateral dentro de la
+     tarjeta, que en esta web no lo tiene ninguna otra tabla (medido: 0 de 25 en
+     la vista de Equipos al mismo ancho). Partiendose, la tabla cabe en
+     cualquier sitio y lo que cede es una linea de texto, no la navegacion.
+     Los clubes no se parten por dentro: `.club-frase` es inline-flex, asi que
+     el corte cae entre un club y el otro, alrededor de la flecha. */
+  th.desc, td.desc { text-align: center; line-height: 1.35; white-space: normal; }
+  /* La celda es una REJILLA de tres, y la del medio es la flecha. Con el texto
+     suelto y alineado a la izquierda la columna se veia descuadrada, y la culpa
+     no era de la alineacion sino de que cada trozo mide distinto: hay clubes
+     con escudo y sin el, nombres de una palabra y de cinco, y alguna pastilla
+     de cantera por medio. Asi los tres huecos son siempre los mismos y las
+     FLECHAS caen todas en la misma vertical, que es lo que cuadra la columna.
+     Con `fr` y no `auto auto auto`: los `fr` no dependen del contenido, asi que
+     la flecha cae en la misma vertical en TODAS las filas. Con `auto` cada
+     celda se ajustaria a sus nombres y volveria el desorden.
+     Y el lado derecho un 15% mas ancho que el izquierdo porque el destino es
+     mas largo de media: los nombres completos —"CLUB DEPORTIVO DE TECNICOS AL
+     ANDALUS", 347px— son de clubes de la categoria, y el origen suele ser un
+     club de fuera con nombre corto. Medido barriendo escudo x ratio: a partes
+     iguales se partian 9 nombres de 40 en dos lineas; con 1.15 no se parte
+     ninguno y todas las filas miden 56-57px. */
+  /* `minmax(0, …)` y no `1fr` a secas: un track `fr` no baja de su contenido
+     minimo, asi que una fila larga -sobre todo las de `.sola`, que ocupan las
+     tres columnas- empujaba los tracks de SU celda y la tabla entera se salia
+     de la tarjeta. Y como cada celda es su propia rejilla, cada una crecia por
+     su lado y las flechas dejaban de caer en la misma vertical: a 1000px habia
+     tres verticales distintas. Con el suelo en 0 el reparto manda siempre y lo
+     que cede es el texto, que se parte. */
+  /* La rejilla va DENTRO de la celda, no en la celda.
+     Estuvo en el propio `td` y eso lo saca del modelo de tabla: deja de
+     estirarse al alto de la fila y se queda al de su contenido, colocado
+     arriba. Medido: fila de 79px, `td.desc` de 46, y su centro 8px por encima
+     del de las otras dos celdas — las 25 filas de la tabla torcidas.
+     En un `<span>` de dentro, la celda sigue siendo celda y centra lo suyo. */
+  td.desc > .frase-rejilla {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.15fr);
+    align-items: center;
+  }
+  /* El porque de la fila, solo en la vista REVISAR. Va DEBAJO de la frase y no
+     en una columna propia: la tabla ya tiene cinco y el motivo es la unica que
+     no cabe en un ancho fijo -son frases, de "señal debil" a una lista de
+     candidatas-. Hereda el ambar de tr.dudoso, que es donde vive siempre. */
+  td.desc > .motivo-revisar {
+    display: block; margin-top: var(--sp-4px);
+    font-size: var(--t-2xs); font-style: italic; opacity: .85;
+  }
+  /* Cada lado, pegado a su flecha: el origen termina en ella y el destino
+     empieza en ella. Es lo que hace que se lean como una sola frase y no como
+     dos columnas sueltas. */
+  .lado { display: inline-flex; align-items: center; gap: var(--sp-6px); flex-wrap: wrap; }
+  .izq { justify-self: end; justify-content: flex-end; text-align: right; }
+  .dcha { justify-self: start; justify-content: flex-start; text-align: left; }
+  /* Y cuando solo hay un club no hay dos lados que equilibrar: ocupa la fila
+     entera y se centra. Una flecha con un extremo vacio no significa nada, asi
+     que estas filas no la llevan. */
+  .sola { grid-column: 1 / -1; justify-self: center;
+          display: inline-flex; align-items: center; gap: var(--sp-6px); flex-wrap: wrap; justify-content: center; }
+  /* El verbo es gramatica, no dato: en gris y sin peso, para que lo que resalte
+     sean los nombres de los clubes, que es a lo que se viene. */
+  .verbo { color: var(--muted); margin-right: var(--sp-6px); }
+  /* La flecha, del color del acento y mas grande que el texto: no es puntuacion
+     entre dos nombres, es el simbolo que cuenta la noticia. Es un SVG y no el
+     caracter "→" porque el tipografico depende de la fuente que acabe usando el
+     sistema —grosor, tamaño y altura sobre la linea cambian— y aqui hace falta
+     que sea siempre igual. */
+  .flecha { width: 22px; height: 22px; margin: 0 var(--sp-8px); color: var(--accent-texto); flex: none; }
+  /* Escudo y nombre pegados: `inline-flex` para que el escudo no se quede solo
+     al final de una linea con su nombre en la de abajo. */
+  .club-frase { display: inline-flex; align-items: center; gap: var(--sp-6px); min-width: 0; flex-wrap: wrap; }
+  /* `min-width: 0` en los tres, y no es adorno: un item de flex o de grid NO baja
+     de su contenido minimo salvo que se le diga. Sin esto, la columna de la
+     descripcion no podia ceder y la tabla se salia de la tarjeta —122px a 850px
+     de ventana— por mucho que se le bajara el `max-width` al nombre: el tope no
+     manda si el suelo no cede. Medido: con los tres puestos, el sobrante cae de
+     122 a 28. */
+  .lado { min-width: 0; }
+  /* `.nom` es un FLEX de dos cajas: el escudo y el texto.
+     Cuando el escudo iba suelto DENTRO del texto pasaba una de dos: sin sangria
+     la segunda linea le pasaba por debajo, y con sangria no habia forma de
+     centrarlo contra un nombre de varias lineas, porque es parte de la primera.
+     Y sacandolo fuera pero dejando el texto sin caja propia, la del nombre mide
+     siempre su `max-width` y el sobrante cae en el lado de la alineacion: en la
+     columna de origen —alineada a la derecha— el escudo se quedaba a 43px de
+     media del texto, y a 86 en el peor caso.
+     Con el texto en SU caja las tres cosas salen a la vez. Medido sobre las 314
+     frases de la cronologia de LF2: hueco de 6px en los tres lados, escudo
+     centrado contra el bloque entero aunque tenga tres lineas, y CERO lineas
+     pasando por debajo. */
+  .club-frase .nom { display: flex; align-items: center; gap: var(--sp-6px); min-width: 0; }
+  .club-frase .nom .escudito { flex: none; }
+  /* El texto SIEMPRE alineado al inicio, aunque su lado vaya alineado a la
+     derecha: es lo que mantiene la primera letra pegada al escudo. Alineado a la
+     derecha, el sobrante de la caja se mete justo entre los dos.
+     El precio es que en la columna de origen el texto se separa de la flecha
+     —49px de media—, y se elige asi a proposito: el escudo despegado se ve mucho
+     mas que un texto que no llega a tocar la flecha. */
+  .club-frase .nom .txt { text-align: left; min-width: 0; }
+  /* Techo al nombre. Al pasarse se parte en dos lineas —no se recorta— porque
+     un nombre a medias no identifica a nadie, y la fila no crece por ello: la
+     marca la foto de la jugadora, que mide mas.
+     28ch medido sobre los 28 equipos y los clubes de fuera que aparecen: por
+     debajo empiezan a partirse nombres normales -"CD PRESENTACION DE GRANADA"-
+     y por encima ya no ahorra nada. Al tope llega uno solo, "CD BALONCESTO
+     SEVILLA FEMENINO", que con 30 caracteres es el mas largo de la liga.
+     `max-width` y no `width`: los cortos siguen ocupando lo suyo. */
+  /* MAYUSCULAS, y por lo mismo que se normalizan los nombres de las jugadoras:
+     en esta columna conviven dos fuentes. Los clubes de la categoria vienen de
+     la federacion y ya llegan en mayusculas; los de fuera vienen del texto del
+     anuncio y los escribe cada club como quiere —"CB Alcobendas", "Idaho
+     Vandals", "C.B. SANTFELIUENC"—. Puestos en la misma columna parecian tres
+     criterios.
+     Se hace en CSS y no en el dato: es como se PINTA, no como se llama. El
+     nombre de verdad sigue en el JSON y en el tooltip, que es con lo que se
+     cruza contra el censo. */
+  .club-frase .nom { font-weight: 500; max-width: 250px; text-transform: uppercase; }
+  /* El ORIGEN, pegado a la flecha. La rejilla ya alinea su columna a la derecha,
+     pero eso solo se nota cuando el nombre es corto: en cuanto ocupa el ancho
+     entero —"BALONCESTO CLARET BENIMACLET", "HAMAR-ÞÓR DE ISLANDIA"— la caja
+     llena la columna y el contenido arranca a la izquierda, asi que unas filas
+     quedaban pegadas a la flecha y otras al borde opuesto. Con `flex-end` el
+     escudo y el nombre se van a la derecha SIEMPRE, tenga el ancho que tenga, y
+     la flecha queda como eje de todas las filas.
+     El destino no se toca: alli lo que alinea es el borde izquierdo, tambien
+     contra la flecha. */
+  .club-frase.izq, .lado.izq .club-frase { justify-content: flex-end; }
+  /* El escudo del ORIGEN, DENTRO del flujo del texto y no como hermano flex.
+     Con flex no basta: `.txt` es un bloque y ocupa el ancho disponible, asi que
+     el texto se alinea a la derecha DENTRO de su caja y el escudo se queda
+     pegado al borde izquierdo de esa caja — con nombres de dos lineas quedaba a
+     media columna del nombre ("BALONCESTO CLARET / BENIMACLET", "C'CHARTRES
+     METROPOLE / BASKET FEMININ"). Empujar la caja no sirve porque la caja YA
+     esta a la derecha; lo que sobra es ancho por dentro.
+     En linea, escudo y texto son el mismo contenido y `text-align: right` los
+     lleva juntos al borde. El precio esta documentado arriba y aqui no aplica:
+     la segunda linea arranca en el borde izquierdo de la caja, que alineada a la
+     derecha es justo donde tiene que estar. */
+  .lado.izq .club-frase .nom { display: block; text-align: right; }
+  .lado.izq .club-frase .nom .escudito { display: inline-block; vertical-align: middle; margin-right: var(--sp-6px); }
+  .lado.izq .club-frase .nom .txt { display: inline; text-align: right; }
+  /* El escudo va dentro del texto, como una letra mas: `inline-block` y alineado
+     al medio de la linea. Asi viaja pegado a la primera palabra aunque el nombre
+     se parta en dos lineas, que es lo que no conseguia estando fuera. */
+  
+  /* El de repuesto, en gris y de trazo: se ve que es un hueco, no un emblema. */
+  .escudito-vacio { color: var(--line); stroke-width: 1.5; }
+  /* La competicion del club de fuera. Pequeña y en gris: es una aclaracion, no
+     parte del nombre. */
+  .liga-club { font-size: var(--t-2xs); color: var(--muted); font-weight: 500; white-space: nowrap; }
+  /* El DESTINO en negrita de verdad: es la respuesta a "¿y ahora dónde juega?",
+     que es a lo que se viene. El origen queda de contexto. */
+  .club-frase.destino .nom { font-weight: 700; }
+  .escudito { width: 34px; height: 34px; object-fit: contain; flex: none; }
+  /* El club en la columna de Procedencia de las tarjetas. Mismo componente que
+     en la cronologia y escudo mas pequeño: aqui la celda es estrecha —34px se
+     comian el ancho que acabamos de ganarle a la columna— y el escudo es una
+     ayuda para reconocer el club de un vistazo, no el sujeto de la fila.
+     `align-items: center` y no `baseline`: el nombre puede ocupar dos lineas y
+     con baseline el escudo se ancla a la primera y queda alto. */
+  .club-proc { display: inline-flex; align-items: center; gap: var(--sp-6px); text-align: left; }
+  /* En movil el escudo se paga en LINEAS: la columna vive con su suelo de 20ch y
+     lo que ocupe la imagen se lo quita al nombre. Medido sobre las 61 celdas de
+     LF2 a 420px, lineas por celda de media:
+        sin escudo 3,03 · 18px 3,28 · 20px 3,30 · 28px 3,46
+     Asi que 20px abajo —el escudo se reconoce igual y cuesta la mitad— y 28
+     donde la columna ya tiene 34ch y sobra sitio. Mismo umbral que ella, para
+     que las dos cosas cambien a la vez y no haya un tramo descompensado. */
+  .club-proc .escudito { width: 20px; height: 20px; }
+  @container contenido (min-width: 668px) { .club-proc .escudito { width: 28px; height: 28px; } }
+  /* La columna, a la IZQUIERDA. Centrada tenia sentido cuando era solo texto:
+     cada nombre empezaba en un sitio distinto y centrar repartia el desequilibrio.
+     Con escudo delante, el ojo busca la imagen y esa tiene que caer siempre en la
+     misma vertical — centrada, los escudos bailaban de fila a fila segun lo largo
+     que fuera el nombre. La cabecera va con ella o el titulo queda descolgado. */
+  th.proc-cab, td.proc { text-align: left; }
+  /* La misma frase, debajo del nombre. Existe SIEMPRE en el HTML y se enseña una
+     u otra segun quepa: asi no hay que medir nada desde el JS ni repintar la
+     tabla al girar el movil. */
+  .desc-linea, .cuando-linea, .estado-linea { display: none; }
+  /* ── El ORDEN en que se cae cada columna ──────────────────────────────────
+     Lo decide para que sirve la tabla, no lo que mide cada cosa. La DESCRIPCION
+     es la noticia —de donde viene y adonde va— asi que es la ultima que se
+     toca; el tipo y la fecha se leen igual bajo el nombre. De ancho a estrecho:
+
+       <1024  la FECHA se mete bajo la pastilla y los ICONOS bajo el nombre
+        <900  cae la columna de MOVIMIENTO: pastilla y fecha bajan bajo el borde
+        <560  cae la de FECHA, que se mete bajo el nombre
+
+     La DESCRIPCION no cae NUNCA, a ningun ancho, ni siquiera en un movil: es la
+     noticia —de donde viene y adonde va— y es lo unico de la fila que no se
+     puede deducir de las otras columnas. Lo que cede es el texto, que se parte
+     en varias lineas, no la columna.
+     Llego a plegarse a 900 primero y a 750 despues; las dos veces la fila se
+     quedaba diciendo "fichaje, 02/07/2026" y nada mas, que no es una noticia. */
+  @container contenido (max-width: 899px) {
+    /* MOVIMIENTO deja de ser una columna de texto y pasa a ser una PESTAÑA
+       VERTICAL en el borde de la fila.
+       Puesta en horizontal se llevaba 100px para una palabra; de canto ocupa el
+       alto de la fila, que ya esta ahi, y no le quita ancho a nadie. Se lee de
+       abajo arriba, que es como se leen las pestañas laterales.
+       La fecha no la acompaña: se queda bajo el nombre, donde se lee de un
+       vistazo con el resto de la ficha. */
+    /* La CABECERA es quien fija el ancho de esta columna, y ahi estaba el
+       grosor de mas: la pastilla ocupa 17px de texto y la tira medía 32, que
+       son justo los 16+16 de `padding-inline` que hereda de la regla de
+       columnas estrechas. Con la celda ya sin relleno, faltaba esta. */
+    .en-cronologia th.tipo { font-size: 0; padding: 0; }
+    /* La pastilla va ABSOLUTA sobre la celda, con `inset: 0`.
+       El alto de una celda de tabla no es una altura definida para su hijo, asi
+       que un `block-size: 100%` no resuelve: la pastilla se quedaba a su alto de
+       contenido —49px en una fila de 79, con 15px de hueco arriba y otros 15
+       abajo— y parecia flotar. Y hacer flex el `td` es la misma trampa que dejo
+       la descripcion torcida: lo saca del modelo de tabla.
+       Al salir del flujo ya no aporta ancho, de ahi el `min-inline-size`. */
+    .en-cronologia td.tipo {
+      position: relative; width: 1%; min-inline-size: 24px; padding: 0;
+    }
+    .en-cronologia td.tipo .pill {
+      position: absolute; inset: 0;
+      writing-mode: vertical-rl; transform: rotate(180deg);
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 0; margin: 0;
+      /* OJO con los ejes, que estaban al reves: de canto el eje de BLOQUE es el
+         HORIZONTAL, asi que seria el GRUESO de la tira —cada pixel ahi es ancho
+         que le quita a la descripcion— y `padding-inline` es el aire en las
+         puntas de la palabra. Con 8px de bloque la tira medía 32px para una
+         letra de 12.
+         SIN `padding-block` NINGUNO. Llego a tener `0 2px` para despegar la
+         letra del filete de la columna, y en escritorio no se nota; en movil
+         descuadraba el texto vertical, porque con la tira ya tan estrecha esos
+         2px de un solo lado descentran la palabra dentro de ella. El aire va
+         entero en las puntas. */
+      padding-inline: var(--sp-6px);
+      /* `nowrap` porque de canto el ancho disponible es el ALTO de la fila: sin
+         el, "FICHAJE" se partia en dos columnas de letras. */
+      /* Legibilidad: de canto y en blanco sobre color, la letra pide un punto
+         mas del que pediria en horizontal. El `letter-spacing` se deja como
+         venga de la pastilla: puesto a 0 no arreglaba nada y solo tapaba de
+         donde sale el que tiene. */
+      /* Y un punto MENOS que en horizontal, que es lo contrario de lo que decia
+         el comentario de arriba y hubo que rendirse a la medida: de canto, el
+         sitio para la palabra es el ALTO DE LA FILA, y al apretar el interlineado
+         del nombre las filas cortas —las de canterana, con nombre de una linea—
+         bajaron a 62px. "renueva" a --t-sm pide 64 y se cortaba por dos pixeles.
+         Antes se probo a quitarle aire a las puntas: bajar el `padding-inline` de
+         10 a 6 NO movio el alto que necesita, asi que el problema es la palabra,
+         no el margen. A --t-xs pide 58 y entra con holgura.
+         La legibilidad no sufre: sigue siendo mayuscula, en negrita y sobre
+         color. */
+      white-space: nowrap; font-size: var(--t-xs); line-height: 1;
+    }
+    /* La fecha bajo el nombre, sin la pastilla al lado: esa ya esta al borde. */
+    /* `line-height: 0` en el CONTENEDOR, no en la fecha. El hueco de mas no lo
+       ponia el texto sino la caja de linea del bloque que lo envuelve, asi que
+       ajustar el interlineado en `.estado-fecha` no movia nada — se probo. */
+    .en-cronologia .estado-linea { display: block; width: 100%; line-height: 0; }
+    .en-cronologia .estado-linea .pill { display: none; }
+    .en-cronologia .estado-fecha {
+      font-size: var(--t-2xs); color: var(--muted); font-variant-numeric: tabular-nums;
+      /* El interlineado se anula ARRIBA, en `.estado-linea`: aqui no servia de
+         nada porque el hueco lo ponia la caja de linea del contenedor y no el
+         texto. Se dejo puesto un rato y no movio un pixel. */
+      line-height: normal;
+    }
+    /* Y la fecha de dentro de la columna sobra: aqui la lleva `.estado-fecha`. */
+    .en-cronologia td.tipo .cuando-linea { display: none; }
+    /* La descripcion NO se compacta aqui, y se probo: escudo de 22px, nombre de
+       15ch y letra menor. Se quito porque no hacia falta —lo que no cabia era
+       culpa del reparto de columnas, no del tamaño— y ademas dejaba la parte
+       importante de la fila mas pequeña que el nombre, que es al reves de lo que
+       cuenta la tabla. En tableta sobra ancho para leerla igual que en un
+       portatil. */
+    /* Y la DESCRIPCION se queda con TODO el sobrante. El `width: 1%` de la
+       columna de la jugadora —arriba, en la consulta de 750— la deja en su
+       ancho, y este `100%` es el que manda lo que sobre entero aqui, que es la
+       unica columna que crece de verdad.
+       Sin las dos, la tabla hacia lo contrario: le daba a la jugadora 640 de 900
+       y comprimia esta a 40px, partiendo el texto letra a letra en vertical.
+       Medido en la franja: jugadora 322 fija -el mismo ancho que a 1100- y
+       descripcion de 444 a 575 segun sobre, sin desbordar en ningun punto. */
+    .en-cronologia td.desc, .en-cronologia th.desc { width: 100%; }
+  }
+
+  /* Por debajo de 750 la DESCRIPCION sigue en su columna —esa es la decision— y
+     lo que se hace es dejarla ENCOGER, que es distinto de plegarla.
+     `.desc-linea` sigue existiendo en el HTML, apagada: es el plegado que se
+     quito. Se deja el nodo por si algun dia se recupera; lo que no se deja es
+     que se encienda solo. */
+  @container contenido (max-width: 749px) {
+    /* El escudo y la letra, a la medida de un movil. A 931 se probo reducirlos y
+       se descarto porque alli sobra ancho; aqui no sobra: son 390px para dos
+       clubes con nombre completo. */
+    .en-cronologia td.desc { font-size: var(--t-xs); }
+    .en-cronologia td.desc .escudito { width: 28px; height: 28px; }
+    .en-cronologia td.desc .flecha { width: 16px; height: 16px; margin: 0 var(--sp-4px); }
+    .en-cronologia td.desc .verbo { margin-right: var(--sp-4px); }
+    /* El nombre de la jugadora, que se pueda PARTIR.
+       Aqui estaba el reparto: la columna se llevaba 213px de 359 y a la noticia
+       le dejaba 125, que con el escudo a 28 y la letra a --t-xs no da para un
+       nombre de club sin cortarlo por la mitad. Y no era un suelo -se quitaron
+       los `min-width`- sino el `white-space: nowrap` que traen TODAS las celdas
+       de base: sin poder partirse, el minimo de la columna es el nombre entero.
+       La descripcion ya lo anulaba y esta no. Se probo antes repartir con
+       porcentajes (45/55) y no movio un pixel, por lo de siempre: en una tabla
+       `auto` ninguna columna baja de su minimo de contenido, asi que el reparto
+       no se decide con porcentajes sino bajando el minimo.
+       Y el `min-width: 0` porque el suelo de 150 NO es ninguno de los tramos de
+       arriba: lo pone la regla base de `.nombre`, sin condicion y mas abajo en
+       el fichero. Su comentario dice que en movil cabe "porque las columnas de
+       fecha y de fuentes se esconden", y eso dejo de ser cierto el dia que la
+       descripcion se quedo con su columna tambien en movil: el sitio que
+       liberaban esas dos ya no esta libre. Hace falta especificidad para
+       ganarle a `.nombre` a secas, no basta con el orden: `td.jug .nombre` ya la
+       tiene (0,1,1 contra 0,1,0).
+
+       Y va SIN `.en-cronologia`, que estuvo asi y se quedaba corto: la tabla de
+       PLANTILLA tiene el mismo problema y ninguna clase propia con la que
+       distinguirla —es `div.bloque > div.scroll > table`—. A 360px pedia 363px
+       en una caja de 342 y devolvia el scroll lateral dentro de la tarjeta, que
+       es justo lo que este bloque vino a quitar. Mismo sintoma, misma causa
+       —`nowrap` heredado— y ahora la misma regla, en vez de dos que se parecen. */
+    td.jug .nombre { white-space: normal; }
+    /* `anywhere` -y no `break-word`- porque es el unico que ademas baja el ancho
+       MINIMO de la celda: sin el, la columna no puede encogerse aunque el texto
+       quepa partido, y la tabla se sale de la tarjeta. Solo actua cuando de
+       verdad no hay sitio. */
+    .en-cronologia td.desc .club-frase .txt { overflow-wrap: anywhere; }
+    /* Y lo mismo en la columna PROCEDENCIA de la plantilla, que es el mismo
+       problema con otra clase (`.club-proc` en vez de `.club-frase`).
+       Se vio a 1100px de PANTALLA, que es donde caben dos tarjetas por fila y
+       deja el contenedor en 524px: ahi la columna pedia 240px de minimo —el
+       nombre de club mas largo, entero— y la tabla se salia 84px de su tarjeta.
+       El ancho de pantalla enseña, pero quien manda es el del CONTENEDOR, y por
+       eso este tramo no se habia probado nunca: las tandas iban 1400, 931, 800…
+       y ninguna cae en ese reparto. */
+    td.proc .club-proc .txt { overflow-wrap: anywhere; }
+  }
+
+  /* Y por ANCHO DE TARJETA, que es el que de verdad manda para lo que va dentro.
+     Las tres de arriba viven en `@container contenido`, que mide la envoltura
+     entera: con dos tarjetas por fila esa consulta dice 1100 y la tarjeta 524, y
+     entonces no se aplicaban. Aqui se piden otra vez contra `tarjeta`, que no
+     depende de cuantas quepan al lado. */
+  @container tarjeta (max-width: 620px) {
+    td.jug .nombre { min-width: 110px; line-height: 1.1; }
+    td.jug .nombre, td.proc .club-proc .txt { white-space: normal; }
+    td.proc .club-proc .txt { overflow-wrap: anywhere; }
+    /* Y el tope del nombre de club deja de ser el de escritorio: 250px en una
+       columna que aqui mide poco mas que eso no es un tope, es el ancho entero. */
+    .en-cronologia td.desc .club-frase .nom { max-width: 100%; }
+  }
+
+  /* En MOVIL la frase deja de leerse de izquierda a derecha y pasa a leerse de
+     arriba abajo. No es una preferencia: la rejilla de tres columnas repartia
+     los 170px de la celda en 60 por club, y con eso los nombres se partian a
+     mitad de palabra —"EL PLAN TEL GMAS B", "LAKE HEAD UNIVE RSITY"—. El
+     auditor lo daba por bueno porque no hay nada cortado ni desbordado: solo es
+     ilegible, que es distinto.
+     Apilados, cada club dispone del ancho entero de la celda y la flecha gira
+     para seguir contando lo mismo: de este club, a este otro. */
+  @container contenido (max-width: 559px) {
+    .en-cronologia td.desc > .frase-rejilla {
+      grid-template-columns: minmax(0, 1fr); row-gap: var(--sp-2px);
+    }
+    /* Aqui hubo un bloque para `.izq` y `.dcha` y se ha ido ENTERO.
+       Primero se le quito el centrado, que estaba muerto —mas abajo, en este
+       mismo container query, otro bloque los pone a `start` / `flex-start` /
+       `left` y gana por orden—, y se dejo el `justify-self: stretch` creyendo
+       que era lo unico vivo. Pero es que aquel bloque de abajo TAMBIEN lo pone,
+       con el mismo valor: lo que quedaba aqui tampoco hacia nada.
+       La leccion, que es la que persigue `auditar-css.mjs`: al limpiar una regla
+       pisada no basta con mirar QUE propiedades sobran, hay que mirar si la que
+       se queda tambien esta repetida. Se arregla una vez o se arregla dos.
+       El `justify-self: stretch` sigue existiendo —hace que cada lado ocupe el
+       ancho entero de la celda— y vive en el bloque de mas abajo, junto con
+       `.sola`, que es donde estaba de verdad. */
+    /* La flecha apunta ABAJO, que es adonde esta ahora el destino. Se gira el
+       icono en vez de cambiarlo: es el mismo simbolo y asi no hay dos SVG que
+       mantener sincronizados. */
+    .en-cronologia td.desc .flecha { transform: rotate(90deg); margin: 0; }
+    /* TODO A LA IZQUIERDA, y con el escudo fuera del texto.
+       Se probaron las dos y esta gana por una razon que solo se ve con nombres
+       largos: centrado, el escudo va DENTRO del flujo del texto, asi que la
+       segunda linea del club pasa por debajo de el y el nombre se lee como si
+       colgara del escudo. Con el escudo en su propia caja a la izquierda y el
+       texto en la suya a la derecha, las dos lineas arrancan en la misma
+       vertical y el escudo se queda al lado, que es lo que se pide.
+       Y alineado a la izquierda porque es lo que hace que el texto empiece
+       PEGADO al escudo: centrado, un nombre largo planta `.nom` en su ancho
+       maximo y el texto se centra dentro de esa caja, dejando el escudo solo en
+       el extremo. Ese era el "a veces pegado y a veces no" de la captura.
+       Es ademas lo que ya dice el comentario de la version de escritorio: con
+       cada frase midiendo distinto, centradas empiezan cada una en un sitio y
+       para comparar dos fichajes hay que ir buscando donde arranca cada una. */
+    .en-cronologia td.desc > .frase-rejilla { justify-items: start; }
+    .en-cronologia td.desc .izq,
+    .en-cronologia td.desc .dcha,
+    .en-cronologia td.desc .sola {
+      justify-self: stretch; justify-content: flex-start; text-align: left;
+    }
+    .en-cronologia td.desc .club-frase { justify-content: flex-start; }
+    /* CENTRADO contra el bloque entero, igual que en los demas anchos. Estuvo
+       en `flex-start` y con un nombre de dos lineas el escudo se quedaba pegado
+       arriba, alineado con la primera y descolgado de la segunda: la misma fila
+       se leia distinta segun lo largo que fuera el club, que es justo lo que se
+       quito en escritorio. El `align-self` del escudo sobra con esto. */
+    .en-cronologia td.desc .club-frase .nom {
+      display: flex; align-items: center; max-width: none; text-align: left;
+    }
+    .en-cronologia td.desc .club-frase .nom .txt { text-align: left; }
+    /* Y fuera la pastilla de "cantera" del CLUB. Aqui no cabe en la linea del
+       nombre —el club ya ocupa el ancho entero— asi que se descolgaba sola a un
+       renglon suyo, entre el origen y la flecha, y partia la frase en dos.
+       El dato no se pierde del todo: la de la JUGADORA sigue puesta, montada
+       sobre su foto, y es la que contesta lo que se pregunta al mirar la fila.
+       Esta decia de que cantera venia, que es un matiz para el que en 390px no
+       hay sitio. */
+    .en-cronologia td.desc .etq { display: none; }
+    /* La flecha CENTRADA aunque los clubes vayan a la izquierda, y no es una
+       incoherencia: son dos cosas distintas. Los clubes son datos que se
+       comparan de una fila a otra, y para eso tienen que empezar todos en la
+       misma vertical; la flecha no es un dato, es el gozne entre los dos, y
+       centrada se lee como el eje de la celda en vez de como un tercer elemento
+       de la lista.
+       `justify-self` y no un margen: es hija directa de la rejilla, asi que se
+       coloca contra la celda entera y no depende de lo que midan sus hermanas. */
+    .en-cronologia td.desc > .frase-rejilla > .flecha { justify-self: center; }
+  }
+  /* Y en un movil, ademas, la fecha se mete DEBAJO de la pastilla en vez de
+     tener columna propia. Aqui SI es cosa del movil y por eso vuelve al umbral
+     de siempre: medido a 412px, entre tipo y fecha se llevaban 199 —casi la
+     mitad de la tabla para dos datos de una linea— y a la jugadora, que es el
+     sujeto, le quedaban 151. En una tableta ese apaño no hace falta: sobra
+     ancho para las dos. */
+  @container contenido (max-width: 559px) {
+    .en-cronologia th.cuando, .en-cronologia td.cuando { display: none; }
+    .cuando-linea { display: block; margin-top: var(--sp-4px); font-size: var(--t-2xs);
+                    color: var(--muted); font-variant-numeric: tabular-nums; }
+  }
+
+  /* En TABLETA la cronologia ya aprieta, y mucho antes que la tabla de equipos:
+     lleva dos clubes con su escudo en la misma celda, asi que la descripcion
+     necesita el ancho que las otras no. Por eso estas dos se adelantan a 1024 y
+     no esperan a los 559 de mas abajo.
+     Las dos piezas ya existen en el HTML —la fecha bajo la pastilla y los iconos
+     bajo el nombre— y solo se conmutan: no hay nada que construir, solo decidir
+     a que ancho se cambia de una a otra.
+     Acotado a `.en-cronologia` a proposito: la tabla de Equipos no tiene este
+     problema al mismo ancho y adelantarselo seria quitarle columnas que le
+     caben. */
+  @container contenido (max-width: 1023px) {
+    /* MOVIMIENTO + FECHA en una sola celda: la fecha baja bajo la pastilla. */
+    .en-cronologia th.cuando, .en-cronologia td.cuando { display: none; }
+    .en-cronologia .cuando-linea {
+      display: block; margin-top: var(--sp-4px); font-size: var(--t-2xs);
+      color: var(--muted); font-variant-numeric: tabular-nums;
+    }
+    /* Y los ICONOS de las redes, bajo el nombre de la jugadora en vez de en su
+       propia columna. Ahi no cuestan ancho, y el ancho es justo lo que falta. */
+    .en-cronologia th.col-fuente, .en-cronologia td.col-fuente { display: none; }
+    .en-cronologia .fuentes-linea { display: block; width: 100%; }
+  }
+
+  /* La linea de iconos bajo el nombre. Solo existe en estrecho: en ancho los
+     mismos enlaces viven en su columna, que es donde se leen mejor alineados. */
+  .fuentes-linea { display: none; }
+  /* Sin separacion entre iconos: son dos cuadros de 16px que ya traen su propio
+     aire dentro del trazo, y separarlos hacia que la linea pareciera mas ancha
+     de lo que es. Pegados compactan la celda y bajan el alto de la fila. */
+  .fuentes-linea .fuente { display: inline-grid; }
+
+  @container contenido (max-width: 559px) {
+    /* Fuera la FECHA y fuera la COLUMNA de fuentes. La fecha no se pierde -va
+       en el title del icono- y los iconos bajan debajo del nombre, donde no
+       cuestan ancho.
+       Esto es lo que permite darle al nombre sus 150px: sin las dos columnas,
+       la tabla cabe. Con ellas, exigir 150px era pedir scroll horizontal. */
+    th.anuncio, td.anuncio, th.col-fuente, td.col-fuente { display: none; }
+    /* `width: 100%` es lo que la manda a su propia linea dentro del flex de
+       `.nombre`: pide el ancho entero, asi que ningun hermano le cabe al lado.
+       El hueco de arriba lo pone ya el `gap` del contenedor. */
+    .fuentes-linea { display: block; width: 100%; }
+  }
+
+  @container cabecera (max-width: 559px) {
+    .caja-filtros {
+      position: absolute; left: 0; right: 0; top: 100%;
+      margin-top: 0; padding: 0 var(--sp-16px);
+      background: var(--banda-tabla);
+      border-bottom: 2px solid var(--accent);
+      box-shadow: 0 8px 18px rgba(22, 34, 43, .12);
+    }
+    .caja-filtros > .filtros { padding-bottom: var(--sp-12px); }
+    /* Plegada no debe capturar pulsaciones: sigue estando ahi, con alto cero. */
+    .caja-filtros.plegado { pointer-events: none; border-bottom-width: 0; box-shadow: none; }
+  }
+  /* El ancla del panel flotante era una segunda regla `.barra-sup { position:
+     sticky }` puesta aqui, y no hacia nada: la de arriba ya la deja pegajosa,
+     con su `top` y su `z-index`. Repetir el mismo valor no crea un ancla nueva.
+     Lo que si aporta el razonamiento —que el ancla va en la barra ENTERA y no en
+     la envoltura, para que el fondo llegue de borde a borde— esta anotado donde
+     manda, en la regla de verdad. */
+
+  .filtros { display: flex; gap: var(--sp-8px); flex-wrap: wrap; align-items: center; }
+  /* Etiqueta y desplegable en la misma linea: ocupan la mitad de alto.
+     Sin relleno vertical: la altura la marca el propio texto del desplegable y
+     la barra superior queda mas compacta.
+     El suelo de ancho va en el CAMPO, no en el control: asi los 140px los
+     reparten etiqueta y valor, y la barra no baila al cambiar de filtro. */
+  .campo { display: flex; align-items: center; gap: var(--sp-8px); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 0 var(--sp-10px); min-width: 140px; }
+  .campo span { font-size: var(--t-2xs); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+  .campo select { font: inherit; font-size: var(--t-body); font-weight: 600; color: var(--ink); background: none; border: 0; padding: 0; outline: none; cursor: pointer; }
+  .campo select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  /* Un filtro que no aplica a la vista de turno se marca con `hidden` desde el
+     JS, y `hidden` es `display:none` de la hoja del NAVEGADOR: cualquier regla
+     de aqui con clase le gana y el campo seguiria viendose. Esto lo devuelve.
+     Va con la clase delante para que gane a `.campo { display:flex }` sin
+     recurrir a !important. */
+  .filtros [hidden] { display: none; }
+  /* Los dias de la cronologia.
+     SIN la flechita del navegador, y no por gusto: ocupa sitio dentro de la caja
+     aunque este invisible —en Chrome solo se pinta al pasar el raton, pero
+     reserva su hueco siempre— y ese hueco no se puede medir desde el JS. Con
+     ella puesta, "todo" salia cortado en "tod" por mucho que las cuentas dijeran
+     que cabia: el campo tenia 38px libres y el texto media 31. Fuera la flecha,
+     las cuentas y lo que se ve vuelven a ser lo mismo.
+     Sigue siendo `type=number`: el movil abre el teclado numerico y el `min` y
+     el `max` siguen valiendo. Lo unico que se pierde son dos flechas que aqui
+     nadie necesita, porque el numero se teclea.
+     El ancho lo manda el PLACEHOLDER y no el numero: "todo" mide 31px con esta
+     fuente y "30" solo 16. Y `ch` es el ancho de un CERO, no el de una letra:
+     por eso 5ch para cuatro caracteres y no 4ch. */
+  .campo input[type="number"] {
+    font: inherit; font-size: var(--t-body); font-weight: 600; color: var(--ink);
+    background: none; border: 0; outline: none; min-height: 34px;
+    width: 5ch; padding: 0;
+    font-variant-numeric: tabular-nums;
+    appearance: textfield; -webkit-appearance: textfield;
+  }
+  .campo input[type="number"]::-webkit-inner-spin-button,
+  .campo input[type="number"]::-webkit-outer-spin-button { appearance: none; -webkit-appearance: none; margin: 0; }
+  /* El placeholder es una palabra, no un valor: en gris y sin negrita, como las
+     etiquetas de los campos, para que no se lea como si hubiera algo puesto. */
+  .campo input[type="number"]::placeholder { color: var(--muted); font-weight: 500; opacity: 1; }
+  .campo input[type="number"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  /* Equipo va con desplegable PROPIO, no con <select>. Un select nativo mide lo
+     que su opcion mas larga —y en estas ligas hay nombres que se comen media
+     barra— y ni la altura ni la posicion de su popup se pueden tocar con CSS:
+     las decide el navegador. Chrome 130+ lo permite via ::picker(select), pero
+     Firefox no, y esto se mira en los dos.
+     Con lista propia: ancho acotado, anclada por la DERECHA y 50vh con scroll,
+     igual en todas partes. */
+  .combo { position: relative; }
+  /* Los <select> traen del navegador una altura propia (34px con esta fuente) y
+     reservan ademas un hueco a la derecha para su flecha, aunque la ocultemos con
+     appearance:none. Un <button> no trae ninguna de las dos cosas, asi que sin
+     igualarlas el campo Equipo salia mas bajo y mas estrecho que sus vecinos.
+     `min-height` en los dos para que no puedan volver a separarse. */
+  .campo select, #fEquipoBtn { min-height: 34px; }
+  #fEquipoBtn {
+    font: inherit; font-size: var(--t-body); font-weight: 600; color: var(--ink);
+    background: none; border: 0; padding: 0 var(--sp-16px) 0 0; cursor: pointer;
+    text-align: left; max-width: 200px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  #fEquipoBtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  /* `right: 0` es lo que la ancla al borde derecho del campo: crece hacia dentro
+     en vez de salirse por fuera. */
+  #fEquipoLista {
+    position: absolute; z-index: 30; top: calc(100% + var(--sp-6px)); right: 0;
+    min-width: 100%; max-width: min(88vw, 420px); max-height: 50vh; overflow-y: auto;
+    /* Mas aire arriba: el primer elemento quedaba pegado al borde. */
+    margin: 0; padding: var(--sp-8px) var(--sp-4px) var(--sp-4px); list-style: none;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 8px; box-shadow: var(--shadow);
+  }
+  #fEquipoLista[hidden] { display: none; }
+  #fEquipoLista li {
+    padding: var(--sp-4px) var(--sp-8px); border-radius: 4px;
+    cursor: pointer; white-space: nowrap; font-size: var(--t-body);
+  }
+  /* Resalte en gris, no en verde: al lado de los desplegables nativos —que
+     marcan con un gris claro— el acento de la casa cantaba demasiado. */
+  #fEquipoLista li:hover,
+  #fEquipoLista li.activo { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+  #fEquipoLista li.sel { font-weight: 600; }
+  .interruptor { display: flex; align-items: center; gap: var(--sp-8px); font-size: var(--t-sm); cursor: pointer; padding: 0 var(--sp-4px); }
+  .interruptor input { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
+  .cuenta { margin-left: auto; align-self: center; font-size: var(--t-sm); color: var(--muted); }
+  /* En Cronologia y Revision el recuento se muda a la tabla y este se queda vacio.
+     Vacio pero presente sigue siendo un hijo de la fila de filtros con
+     `margin-left: auto`, asi que empujaba a sus vecinos contra el borde izquierdo
+     por un hueco que no tenia nada dentro. */
+  .cuenta:empty { display: none; }
+  /* En estrecho no cabe en la fila de los interruptores y se queda ella sola en
+     una linea entera, que es mucha pantalla para un recuento que ademas se
+     repite: cada grupo lleva su cuenta de equipos al lado del titulo. */
+  @container cabecera (max-width: 559px) { .cuenta { display: none; } }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+
+  /* El panel "Informacion": los totales y los dos avisos.
+     En ancho se ve entero y donde siempre ha estado; el boton ni aparece,
+     porque no hay nada que ganar escondiendolo cuando sobra sitio. En estrecho
+     ocupaba la pantalla ENTERA —al cargar lo unico que se veia era el resumen y
+     no habia ni rastro de los equipos, que son a lo que viene uno— asi que alli
+     se recoge detras de una LINEA a todo ancho que abre un modal.
+     Modal y no plegable: desplegado hacia abajo empujaba la pagina entera, y al
+     cerrarlo te devolvia a un sitio distinto del que estabas mirando. El modal
+     se abre encima y no mueve nada de sitio.
+
+     Este es el UNICO sitio de la hoja donde la consulta es de ventana y no de
+     contenedor, y va a proposito: un modal tapa la VENTANA, no un contenedor, y
+     ademas `showModal()` saca el <dialog> a la capa superior, donde su caja ya
+     no cuelga de ningun ancestro. Colgar la decision de un container query seria
+     preguntarle a alguien que ha dejado de mandar. */
+  /* La linea que abre el panel es la MISMA barra que el aviso legal que hay
+     dentro: mismo filete de acento, mismo fondo, mismo cuerpo de letra. Son las
+     dos unicas barras de la pagina y leerlas distinto no aportaba nada.
+     Por eso lleva la clase `.aviso` desde el HTML y aqui solo va lo que un
+     <button> necesita ademas de ella.
+     Los selectores llevan las DOS clases —0,2,0— para ganarle a `.aviso` sin
+     depender de que este bloque vaya despues en la hoja: hoy va antes. */
+  .aviso.panel-info-btn { display: none; }
+  /* En ancho el <dialog> no ejerce de dialogo: es un bloque mas de la pagina, y
+     hay que desmontarle TODO lo que el navegador le pone de fabrica. Son mas
+     cosas de las que parece, y la que de verdad muerde es `position: absolute`:
+     el panel se saldria del flujo y se pintaria encima de la rejilla de equipos.
+     Detras van el `display: none` de cuando esta cerrado, el `fit-content` de
+     ancho y alto, los margenes de centrado, el borde, el relleno, los colores
+     propios y el `overflow: auto`, que recortaria el desplegable de dentro. */
+  .caja-info {
+    position: static; display: block; overflow: visible;
+    inline-size: auto; max-inline-size: none; block-size: auto;
+    margin: 0; padding: 0; border: 0; background: none; color: inherit;
+  }
+  /* La cabecera con el titulo y la X solo pinta dentro del modal. */
+  .cab-info { display: none; }
+  /* Hasta 1024px el panel de informacion va PLEGADO detras de su boton, no solo
+     en movil: las cuatro cifras —altas, renovaciones, bajas, clubes escaneados—
+     y el aviso de "informacion no oficial" son contexto, no lo que se viene a
+     leer, y en tablet se comian la primera pantalla entera antes de llegar a los
+     movimientos. Desplegado se queda solo en escritorio, donde sobra sitio.
+     1024 y no 1023: es el ancho exacto de un iPad apaisado, que si no se quedaba
+     justo fuera. */
+  @media (max-width: 1024px) {
+    /* El reparto —texto a la izquierda, icono a la derecha— ya lo pone el
+       `space-between` de `.aviso`; aqui solo se deshace lo que trae de fabrica
+       un <button>: su tipografia, su borde y su ancho segun contenido.
+       OJO con el borde: `border: 0` a secas se llevaria por delante tambien el
+       filete de acento de `.aviso`, que es justo lo que se venia a copiar. */
+    .aviso.panel-info-btn {
+      display: flex; inline-size: 100%; cursor: pointer; text-align: start;
+      border-block: 0; border-inline-end: 0;
+      font: inherit; font-size: var(--t-sm); font-weight: 600; color: var(--ink);
+      /* Sin hueco debajo: hereda el `margin` de `.aviso`, que esta pensado para
+         un aviso entre bloques de contenido. Aqui es un boton pegado al primer
+         grupo, y ese hueco solo separaba dos cosas que van juntas. */
+      margin-bottom: 0;
+    }
+    /* El icono se queda en gris —es una pista, no el contenido— y no encoge
+       cuando el texto ocupa la linea entera. */
+    .aviso.panel-info-btn svg { flex: none; inline-size: 20px; block-size: 20px; color: var(--muted); }
+
+    .caja-info:not([open]) { display: none; }
+    /* Hoja pegada abajo y no caja centrada: en un movil el pulgar llega al
+       borde inferior y no al centro de la pantalla.
+       `svh` y no `vh`: con la barra del navegador desplegada, `vh` cuenta una
+       pantalla que no existe y la hoja se sale por abajo. */
+    .caja-info[open] {
+      position: fixed; inset: auto 0 0 0;
+      inline-size: auto; max-inline-size: none; max-block-size: 82svh;
+      margin: 0; padding: var(--sp-16px) var(--sp-16px) var(--sp-24px);
+      overflow: auto; overscroll-behavior: contain;
+      background: var(--bg); color: var(--ink);
+      border: 1px solid var(--line); border-block-end: 0;
+      border-start-start-radius: 14px; border-start-end-radius: 14px;
+      box-shadow: var(--shadow);
+    }
+    .caja-info::backdrop { background: rgb(0 0 0 / .5); }
+    /* Pegada arriba: con la lista larga, la X tiene que seguir alcanzable sin
+       volver a subir del todo. El fondo la separa de lo que pasa por debajo. */
+    .cab-info {
+      display: flex; align-items: center; gap: var(--sp-8px);
+      position: sticky; inset-block-start: 0; z-index: 1;
+      margin: calc(var(--sp-16px) * -1) calc(var(--sp-16px) * -1) 0;
+      padding: var(--sp-12px) var(--sp-16px);
+      background: var(--bg); font-weight: 700;
+    }
+    .cerrar-info {
+      display: grid; place-items: center; margin-inline-start: auto;
+      inline-size: 32px; block-size: 32px; padding: 0;
+      background: none; border: 0; color: var(--muted); cursor: pointer;
+      border-radius: 8px;
+    }
+    .cerrar-info svg { inline-size: 20px; block-size: 20px; }
+    /* Ya lo separa la cabecera del modal: el margen de arriba sobra aqui. */
+    .caja-info[open] .totales { margin-block-start: var(--sp-12px); }
+  }
+
+  /* Dos columnas en movil y cuatro cuando cabe. Container query, no media
+     query: lo que decide es el ancho del contenedor de la pagina. */
+  .totales { display: grid; gap: var(--sp-10px); grid-template-columns: repeat(2, 1fr); margin: var(--sp-16px) 0 var(--sp-10px); }
+  @container contenido (min-width: 620px) { .totales { grid-template-columns: repeat(4, 1fr); } }
+  .tile { text-align: center; padding: var(--sp-12px); }
+  .tile b { display: block; font-size: var(--t-num-xl); font-weight: 700; color: var(--accent-texto); font-variant-numeric: tabular-nums; }
+  .tile span { color: var(--muted); font-size: var(--t-xs); }
+
+  /* Hasta donde se ha barrido. La ventana de lectura es MOTOR: una tabla vacia
+     porque no hay fichajes y una vacia porque nadie ha barrido esa temporada se
+     ven igual y no son lo mismo.
+     Cuando la temporada NO se ha recorrido entera va en ambar y no en gris: es
+     una advertencia sobre lo que se esta leyendo, no un pie de pagina. */
+  .barrido { margin: 0 0 var(--sp-10px); font-size: var(--t-xs); color: var(--muted); }
+  .barrido.incompleto {
+    color: #a16207; background: color-mix(in srgb, #d97706 10%, transparent);
+    border-left: 3px solid #d97706; border-radius: 0 6px 6px 0;
+    padding: var(--sp-8px) var(--sp-12px);
+  }
+
+  /* El aviso legal, separado del resto: es lo primero que hay que leer y lo
+     ultimo que hay que olvidar. El margen de arriba es el mismo que traia
+     .totales, que era lo primero bajo la cabecera antes de que el aviso se
+     pusiera delante: asi el respiro no depende de cual de los dos vaya primero.
+     `margin: 0` en el parrafo porque el hueco entre las piezas lo pone el `gap`
+     del flex; dejar ademas el margen del <p> es contar el espacio dos veces. */
+  /* `hidden` es `display: none` de la hoja del NAVEGADOR, y cualquier regla de
+     autor le gana por serlo, no por especificidad. Sin esta linea el aviso se
+     marcaba como oculto y seguia midiendo 63px de alto: visible del todo.
+     Es la segunda vez que muerde en esta hoja -paso igual con los filtros- asi
+     que la regla es: si un elemento lleva `display` propio y alguien lo va a
+     esconder con `hidden`, hace falta escribirlo. */
+  .aviso[hidden] { display: none; }
+  .aviso { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-12px);
+    border-left: 3px solid var(--accent); padding: var(--sp-12px) var(--sp-16px); color: var(--muted); font-size: var(--t-sm);
+    background: var(--bg-soft); border-radius: 0 6px 6px 0; margin: var(--sp-16px) 0 var(--sp-10px); }
+  .aviso .texto { flex: 1 1 22rem; min-width: 0; margin: 0; }
+
+  /* El aviso legal y el enlace al bot son dos cosas distintas: el texto a la
+     izquierda y la llamada a la accion a la derecha, separadas de verdad —de
+     eso se encarga el `space-between` de arriba—. En estrecho se apilan solas
+     por el `flex-wrap`, que si no el enlace queda espachurrado contra el texto.
+
+     Vivio en el liga.css de N1 mientras fue la unica con bot, con la nota de que
+     subiria aqui el dia que LF2 estrenara el suyo. Ese dia fue el 2026-08-04.
+     Lo unico propio de cada liga es el handle, y ese va en su index.html. */
+  .aviso .bot { display: inline-flex; align-items: center; gap: var(--sp-6px); flex: 0 0 auto;
+    padding: var(--sp-6px) var(--sp-12px); border: 1px solid var(--accent); border-radius: 999px;
+    color: var(--accent-texto); font-weight: 600; text-decoration: none; white-space: nowrap; }
+  /* Relleno con el acento pleno, y el texto de encima lo pone el token: con un
+     acento claro tiene que ser oscuro y con uno marino, blanco. Escrito a mano
+     se borraba en una de las dos ligas al pasar el raton, que es justo cuando
+     tiene que leerse mejor. El borde si va del acento pleno: es una linea, no
+     un texto, y ahi el contraste no manda igual. */
+  .aviso .bot:hover { background: var(--accent); color: var(--texto-sobre-accent); }
+  /* OJO: esta regla RELLENA un svg, que es lo que `svg[data-trazo]` prohibe al
+     final de la hoja. No muerde por dos razones —es (0,2,1), asi que gana por
+     especificidad y no por orden, y este icono no lleva `data-trazo`—. El dia
+     que se le meta dentro un icono de trazo, se rompe en silencio. */
+  .aviso .bot svg { width: 14px; height: 14px; fill: currentColor; }
+  /* `hidden` tiene que ganar. Un `display` en una regla de clase pisa al
+     `display: none` que el navegador le da a `[hidden]`, porque una clase gana a
+     un selector de tipo: el boton salia igual con el atributo puesto. Pasa
+     siempre que se estila con `display` algo que alguna vez va oculto, y aqui
+     hizo falta el dia que una liga aun no tenia canal de Telegram. */
+  .aviso .bot[hidden] { display: none; }
+
+  /* --- Los grupos y sus rejillas --- */
+  /* La competicion se lee POR GRUPO, no como una lista seguida: con los 28
+     equipos uno detras de otro no se sabe donde acaba uno y empieza el otro, y
+     la clasificacion —que es contra lo que se lee esto— va por grupo.
+     El contenedor es una columna y cada grupo aporta su titulo y su rejilla. El
+     titulo va FUERA de las tarjetas —no es una tarjeta mas ni un encabezado
+     dentro de otra— porque es lo que separa las mitades.
+     Una liga de UN solo grupo pinta una rejilla con el mismo CSS y el mismo JS:
+     cuantos grupos hay lo dice el JSON, no hay caso especial que escribir. */
+  #equipos { display: flex; flex-direction: column; margin-top: var(--sp-24px); }
+  .titulo-grupo {
+    display: flex; align-items: baseline; gap: var(--sp-8px); width: fit-content;
+    margin: var(--sp-24px) 0 var(--sp-12px); font-size: var(--t-h2); font-weight: 700;
+    border-bottom: 2px solid var(--accent); padding-bottom: var(--sp-4px);
+  }
+  .titulo-grupo:first-child { margin-top: 0; }
+  .titulo-grupo span { font-size: var(--t-xs); font-weight: 500; color: var(--muted); }
+
+  /* En estrecho el titulo del grupo se queda pegado bajo la cabecera mientras
+     se recorre ese grupo, y lo empuja el siguiente al llegar. Con 14 equipos
+     por grupo en una sola columna, a mitad de scroll uno ya no sabe si esta
+     mirando el A o el B.
+     `top` sale de `--alto-barra`, que mide el JS: la cabecera cambia de alto
+     segun se abran los filtros o no, y un numero fijo aqui la solaparia o
+     dejaria un hueco. El respaldo es por si el JS no llega a correr.
+     El fondo NO es transparente: debajo pasan tarjetas y el texto se leeria
+     encima del de ellas. Y el ancho completo con `width: auto`, que de origen
+     es `fit-content` y dejaba el resto de la linea transparente. */
+  @media (max-width: 559px) {
+    #equipos { margin-top: var(--sp-12px); }
+    .titulo-grupo {
+      position: sticky; top: var(--alto-barra, 56px); z-index: 10;
+      padding-top: var(--sp-8px); background: var(--bg);
+    }
+    /* Suelto conserva su subrayado del ancho del TEXTO, que es como se lee un
+       titulo. Pegado pasa a ancho completo: con `fit-content`, el fondo solo
+       tapaba las letras y las tarjetas se veian pasar por el resto de la linea.
+       La clase la pone el JS —CSS no sabe todavia si un sticky esta pegado— y
+       el cambio no mueve nada de sitio porque el alto no varia.
+       El `box-shadow` es una banda solida del color de la pagina DEBAJO del
+       subrayado: sin ella el contenido que pasa por detras roza la linea. No
+       puede ser `padding-bottom`, que empujaria el subrayado lejos del texto,
+       ni `margin-bottom`, que al estar pegado no se ve. */
+    .titulo-grupo.pegado { width: auto; box-shadow: 0 var(--sp-6px) 0 var(--bg); }
+  }
+
+  /* Masonry con CSS Grid, y SOLO cuando hay dos columnas.
+     Frente a `columns`, que es lo que habia antes, gana dos cosas:
+       - Recoloca DE VERDAD: si una tarjeta encoge, la rejilla vuelve a colocar
+         las demas, incluso pasandolas de columna. Con columnas solo subian las
+         de su propia columna y la otra se quedaba con hueco.
+       - Orden de lectura izquierda-derecha, no en vertical por columna.
+     En una sola columna no hay nada que equilibrar, asi que la rejilla es una
+     lista normal con su hueco: las filas de 1px y el `grid-row` calculado a mano
+     son exactamente lo que NO se quiere ahi, porque una pista fija de 1px no
+     crece con la tarjeta y las apilaria unas encima de otras.
+     `align-items: start` es imprescindible en el modo de dos columnas: sin el,
+     la tarjeta se estiraria al alto que le asigna su propio span y el calculo se
+     realimentaria.
+     `--columnas` no es decorativo: es el contrato con el JS. Quien decide
+     cuantas columnas hay es esta hoja, y el JS solo lo lee para repartir. No
+     puede deducirlo midiendo `grid-template-columns`, que es lo que se hacia
+     antes: al colocar las tarjetas les escribe `grid-column: 2`, y eso crea una
+     columna implicita que hace que una rejilla de UNA columna se mida como de
+     dos. A partir de ahi ya no vuelve nunca, y al estrechar la ventana las
+     tarjetas se quedaban amontonadas unas encima de otras. */
+  .rejilla { --columnas: 1; display: grid; grid-template-columns: 1fr; gap: var(--sp-16px); }
+  @container contenido (min-width: 1000px) {
+    .rejilla {
+      --columnas: 2;
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--sp-16px); row-gap: 0;
+      grid-auto-rows: 1px; align-items: start; grid-auto-flow: row dense;
+    }
+  }
+
+  /* --- La tarjeta de equipo --- */
+  /* UNA sola tarjeta por equipo: el borde, el fondo, el radio y la sombra viven
+     aqui, y lo de dentro son secciones sin recuadro propio.
+     `overflow: hidden` es lo que hace que el color de la cabecera respete las
+     esquinas redondeadas; sin el, el tinte se sale por las puntas. */
+  .equipo {
+    min-width: 0;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 10px; box-shadow: var(--shadow); overflow: hidden;
+  }
+  /* Los equipos que hay que mirar con lupa —cuenta compartida— se distinguen ya
+     desde el borde, antes de leer la nota. */
+  .equipo.con-nota { border-color: color-mix(in srgb, #d97706 45%, var(--line)); }
+
+  /* La franja de color del club, arriba de la cabecera. Va aqui y no en una
+     liga porque el color del club lo tienen las dos —de la camiseta en la FEB,
+     del escudo en la FAB— y la tarjeta se lee igual en las dos.
+     Arriba y a poca altura: es identidad, no decoracion, y con mas grosor
+     compite con el nombre del club.
+     Si una liga tiene clubes de color muy claro, la franja se pierde sobre el
+     panel: eso se corrige en su liga.css, que es quien sabe si le pasa. */
+  .cab { border-top: 3px solid color-mix(in srgb, var(--tinte, var(--accent)) 70%, transparent); }
+
+  /* Identidad a la izquierda, cifras a la derecha. Fondo con el color del propio
+     club muy diluido: `--tinte` lo pone cada equipo, y si la federacion no da
+     color cae al acento de la casa.
+     El alto lo marca su contenido: desde que la lista es masonry cada tarjeta
+     va por libre y no hay filas con las que cuadrar.
+     OJO al orden DENTRO del bloque: `border: 0` va primero porque resetea los
+     cuatro lados; escrito despues borraria el borde inferior. La huella ordena
+     las declaraciones alfabeticamente, asi que este detalle no lo ve. */
+  .cab {
+    display: flex; align-items: center; gap: var(--sp-12px);
+    background: color-mix(in srgb, var(--tinte, var(--accent)) 12%, var(--panel));
+    border: 0;
+    /* Las lineas de DENTRO de la tarjeta van con el color del club, no en gris.
+       El fondo teñido al 12% apenas se ve en clubes de color suave, y era lo
+       unico que decia de quien es la tarjeta; con las separaciones tambien
+       teñidas el color se lee de un vistazo sin gritar.
+       Al 45% y no al 100%: a plena fuerza compite con el contorno de la propia
+       tarjeta y parece que hay dos cajas. */
+    border-bottom: 2px solid color-mix(in srgb, var(--tinte, var(--accent)) 45%, transparent);
+    padding: var(--sp-10px) var(--sp-12px);
+  }
+
+  /* En estrecho, las cifras salen de la cabecera y se meten en un globo.
+     Apiladas debajo estiraban la tarjeta y en la misma linea partian el nombre
+     del club en cuatro lineas de dos palabras; escondidas, la cabecera se queda
+     en escudo + identidad, que es lo que de verdad identifica al equipo.
+     Container query y no media query: lo que decide es el ancho de la TARJETA,
+     asi que una tarjeta estrecha se compacta aunque la pantalla sea grande. */
+  .info-equipo { display: none; }
+  @container contenido (max-width: 560px) {
+    .cab { position: relative; }
+    /* En la ESQUINA y fuera del flujo: en la fila le quitaba al nombre del club
+       28px mas su hueco, justo lo que hace falta para que un nombre largo deje
+       de partirse en lineas de dos palabras. Lo unico que le pasa por debajo es
+       la primera linea —el grupo y el club— y a esa se le reserva sitio con un
+       padding; el nombre del equipo se queda con el ancho entero. */
+    .info-equipo {
+      position: absolute; inset-block-start: var(--sp-6px); inset-inline-end: var(--sp-6px);
+      display: grid; place-items: center; cursor: pointer;
+      inline-size: 26px; block-size: 26px; padding: 0; margin: 0;
+      background: none; border: 0; color: var(--muted); border-radius: 6px;
+    }
+    .linea-sup { padding-inline-end: var(--sp-24px); }
+    .info-equipo svg { width: 18px; height: 18px; }
+    .info-equipo[aria-expanded="true"] { color: var(--tinte, var(--accent)); background: color-mix(in srgb, var(--tinte, var(--accent)) 14%, transparent); }
+    /* El globo cuelga de la cabecera y tapa lo de abajo en vez de empujarlo: si
+       empujara, abrirlo movería la tarjeta y las de al lado con masonry. */
+    .cifras {
+      position: absolute; z-index: 15; top: calc(100% - var(--sp-4px)); right: var(--sp-8px);
+      display: none; text-align: left; min-width: 12rem;
+      padding: var(--sp-10px) var(--sp-12px);
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 8px; box-shadow: var(--shadow);
+    }
+    .cifras.abierta { display: block; }
+  }
+
+  /* Escudo. No lo tienen todos los equipos, y los que lo tienen vienen con
+     proporciones muy distintas —de 11 KB a 149 KB, cuadrados y apaisados— asi
+     que la caja es de tamaño fijo y `contain` para no deformar ninguno.
+     Con `height: auto` un escudo vertical aportaba su alto intrinseco (mas de
+     100px en alguno) y estiraba la cabecera: el escudo mandaba sobre la tarjeta
+     en vez de al reves.
+     No es cuadrada a proposito: los escudos federativos suelen ser mas altos
+     que anchos y encajados en un cuadrado quedan pequeños flotando en el
+     centro. Los que en realidad son foto de perfil en vez de escudo se veran
+     como una foto recortada; si eso molesta se arregla aqui, para todos. */
+  .escudo {
+    align-self: center; flex: none; object-fit: contain;
+    width: 52px; height: 56px;
+  }
+
+  .identidad { display: flex; align-items: stretch; gap: var(--sp-10px); min-width: 0; flex: 1; }
+  .identidad > span:last-child { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+  /* El grupo va solo encima del nombre. */
+  .linea-sup { display: flex; align-items: center; gap: var(--sp-6px); flex-wrap: wrap; line-height: 1.2; }
+  .grupo { font-size: var(--t-2xs); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  /* El CLUB y su localidad, detras del grupo. Va arriba y en pequeño porque es
+     el nombre estable —el que cruza temporadas— mientras que el grande es el
+     del equipo, que lleva patrocinador y cambia cada año. Lleva el pabellon
+     como tooltip: es lo que da sentido a la localidad. */
+  .club-lugar { font-size: var(--t-2xs); color: var(--muted); overflow-wrap: anywhere; }
+  /* El punto SEPARA del grupo, asi que solo existe si hay grupo delante. En una
+     liga de grupo unico -donde el grupo no se pinta- se quedaba colgando al
+     principio de la linea: "· (Badalona)". Con `:first-child` el separador
+     desaparece con lo que separaba. */
+  .club-lugar:not(:first-child)::before { content: "·"; margin-inline-end: var(--sp-6px); }
+  /* El nombre grande de la tarjeta. Es un h3 porque el h2 de la pagina se lo
+     lleva el titulo del grupo, que va por encima de las rejillas. */
+  .nombre-club { font-size: var(--t-h3); line-height: 1.2; margin: 0; overflow-wrap: anywhere; }
+
+  /* Adonde ir a comprobarlo: las cuentas del club, que son las MISMAS que vigila
+     el escaneo, asi que llevan a la fuente de todo lo que hay en la tarjeta.
+     Lo que cada liga tenga se declara en su mercato.js; aqui solo se pintan.
+     ORDEN: este bloque declara `fill: currentColor` para los iconos rellenos (X,
+     Facebook) y empata en especificidad (0,1,1) con el `svg[data-trazo]` del
+     final de la hoja. Va antes a proposito, para que la excepcion del trazo
+     siga ganando. */
+  .enlaces { display: flex; align-items: center; gap: var(--sp-8px); margin-block-start: var(--sp-4px); }
+  .enlaces a {
+    display: inline-flex; color: var(--muted);
+    /* Area de toque comoda sin que el icono crezca: en movil, 16px de SVG son
+       imposibles de acertar con el dedo. */
+    padding: var(--sp-4px); margin: calc(var(--sp-4px) * -1);
+    border-radius: 6px;
+  }
+  .enlaces a:hover { color: var(--tinte, var(--accent-texto)); background: color-mix(in srgb, var(--tinte, var(--accent)) 10%, transparent); }
+  .enlaces svg { inline-size: 16px; block-size: 16px; fill: currentColor; }
+  /* Ancho al contenido: asi la barra mide lo que el texto que tiene encima.
+     Centrado vertical propio: la cabecera estira sus hijos, y sin esto el bloque
+     de cifras se pegaba arriba mientras la identidad quedaba centrada. */
+  .cifras { text-align: right; flex: none; align-self: center; }
+  .barra { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; margin-top: var(--sp-4px); }
+  /* Relleno con el color del propio club y no con el acento: la barra dice
+     cuanto se sabe de ESE equipo, y teñida de su color se lee como parte de su
+     tarjeta en vez de como un widget de la pagina.
+     Si una liga tiene clubes de color muy claro, la barra sobre `--line` se
+     queda invisible: eso se corrige en el liga.css de esa liga, que es quien
+     sabe cuales son. */
+  .barra i { display: block; height: 100%; background: var(--tinte, var(--accent)); }
+
+  /* Nota de cuenta compartida. Va pegada bajo la cabecera y de lado a lado: es
+     una advertencia sobre TODO lo que viene debajo, no sobre un movimiento. */
+  .nota-equipo {
+    margin: 0; padding: var(--sp-8px) var(--sp-12px);
+    font-size: var(--t-xs); line-height: 1.4; color: #a16207;
+    background: color-mix(in srgb, #d97706 12%, transparent);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .par { display: grid; align-content: start; }
+  /* Relleno solo ARRIBA y ABAJO: la tabla llega de lado a lado de la tarjeta,
+     que es donde mejor luce el rayado de filas. El sangrado lateral se lo dan
+     solo los textos, para que no queden pegados al borde. */
+  /* La TARJETA es su propio contenedor de consulta, con nombre PROPIO.
+     Hacia falta porque `contenido` es la envoltura ENTERA: a 1100px de pantalla
+     caben dos tarjetas por fila y cada una mide 524px, pero el contenedor sigue
+     midiendo 1100, asi que los tramos estrechos no aplicaban y la tabla de
+     plantilla se salia 84px de su tarjeta. El ancho que manda para lo que hay
+     DENTRO de una tarjeta es el de la tarjeta, no el de la pagina.
+     Nombre nuevo y no `contenido` a proposito: renombrarla haria que las
+     decenas de reglas `@container contenido (…)` que ya existen pasaran de
+     golpe a resolverse contra la tarjeta. Puede que ese sea el destino, pero es
+     un cambio de calado en las tres ligas y no se hace de pasada. */
+  .bloque { padding: var(--sp-12px) 0; min-width: 0; container: tarjeta / inline-size; }
+  .bloque > .vacio { padding: 0 var(--sp-12px); }
+  /* El titulo y su interruptor, en la misma linea y a extremos opuestos. El
+     sangrado va en el contenedor: puesto en el encabezado se lo comeria el
+     subrayado.
+     El nivel es h4 y no h3 porque los de arriba ya estan pillados: el h2 es el
+     titulo del grupo y el h3 el nombre del club. */
+  .titulo-bloque {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--sp-12px); padding: 0 var(--sp-12px);
+    margin-bottom: var(--sp-8px);
+  }
+  /* Y AIRE POR ARRIBA cuando el titulo viene detras de otro bloque. Sin esto, el
+     encabezado de «Con señal y sin reconocer a nadie» quedaba pegado al borde de
+     la tabla anterior y las dos se leian como una sola: no se veia donde acaba lo
+     que es dato y empieza lo que no lo es, que es justo la unica frontera que hay
+     que ver en esa pagina. Lo pidio Luismi el 15-08.
+     Con el selector de hermano, no como margen fijo: el primer titulo de la
+     pagina no lo lleva, que ahi el aire ya lo pone el contenedor. */
+  .card + .titulo-bloque,
+  .bloque + .titulo-bloque { margin-top: var(--sp-32px); }
+  /* Y LA FRONTERA DE LA VISTA REVISION, que es otra cosa y necesita mas aire.
+
+     Arriba estan los MOVIMIENTOS -lo que es dato- y debajo las publicaciones
+     con señal en las que no se reconocio a nadie -lo que NO lo es-. Esa es la
+     unica frontera que hay que ver en esa pagina, y con 32px las dos tablas
+     volvian a leerse como una sola.
+
+     Y NO por el hermano anterior, que es como estaba y por eso se rompio: la
+     tabla de movimientos ahora lleva pie de paginacion, asi que quien precede
+     al titulo ya no es `.card` ni `.bloque` sino `.tabla-mandos`, y la regla de
+     arriba dejo de casar sin dar ningun aviso. Con `:has()` la condicion mira
+     HACIA DELANTE -el bloque que viene detras es el de sin-persona- y deja de
+     depender de lo que alguien meta en medio manana.
+
+     `:has()` ya se usa en esta hoja (`.tabla-buscar:has(input:focus-visible)`,
+     `.solo-activo .bloque:not(:has(...))`), asi que no estrena nada. Va DESPUES
+     de la regla de arriba a proposito: las dos pesan igual y gana la ultima. */
+  .titulo-bloque:has(+ .sin-persona) { margin-top: var(--sp-56px); }
+  /* La liga de la vecina va DENTRO del h4 —es parte del titulo, no una etiqueta
+     suelta al lado— asi que hereda tamaño, fuente y el subrayado de acento. Lo
+     unico que se le quita es lo que la haria pasar por titulo: el peso y las
+     mayusculas. Es una aclaracion, y se lee como tal. */
+  .titulo-bloque h4 .pista { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--muted); }
+  .titulo-bloque h4 {
+    margin: 0; width: fit-content; font-size: var(--t-xs); font-weight: 700; color: var(--ink);
+    text-transform: uppercase; letter-spacing: .06em;
+    /* `fit-content` arriba es lo que hace que el subrayado mida lo que el TEXTO
+       y no cruce la tarjeta de lado a lado. Con el ancho completo parecia un
+       separador de seccion, no un titulo subrayado. */
+    border-bottom: 2px solid var(--accent); padding-bottom: var(--sp-4px);
+  }
+  /* "Solo anuncios" es UNO para toda la pagina y vive en la barra de filtros; la
+     marca la lleva el contenedor de equipos, no cada bloque. Por eso el selector
+     no nombra a nadie por encima de la fila: le da igual de que ancestro cuelgue
+     la marca. `sin-noticia` solo la llevan las filas de la plantilla, asi que la
+     tabla de movimientos no se entera. */
+  .solo-activo tr.sin-noticia { display: none; }
+
+  /* Y si con el filtro puesto NO queda ninguna fila, se esconde la tabla entera
+     y se explica. Sin esto, la plantilla de un club del que no se ha leido nada
+     -Manresa, 15 jugadoras y 0 anuncios- quedaba en una cabecera de columnas
+     flotando sobre nada, que parece un fallo de la pagina y no una respuesta.
+     El aviso se escribe siempre y aqui se decide si se ve, porque quien sabe si
+     el filtro esta puesto es el CSS.
+     `:has()` mira si al bloque le queda alguna fila DE DATOS: se descuentan las
+     escondidas y la fila de titulo de las canteranas, que no es una jugadora. */
+  .nadie-con-anuncio { display: none; }
+  .solo-activo .bloque:not(:has(tbody tr:not(.sin-noticia):not(.grupo-filas))) .scroll { display: none; }
+  .solo-activo .bloque:not(:has(tbody tr:not(.sin-noticia):not(.grupo-filas))) .nadie-con-anuncio { display: block; }
+  /* El separador entre las que tenian ficha del equipo y las que subian de la
+     cantera. Es una fila de la MISMA tabla para que las columnas sigan
+     alineadas, asi que se disfraza de encabezado. */
+  tr.grupo-filas td {
+    padding: var(--sp-12px) var(--sp-12px) var(--sp-4px);
+    border-top: 1px solid var(--line); border-bottom: 0;
+    font-size: var(--t-2xs); font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  /* Con "solo anuncios" puesto, un grupo entero puede quedarse sin filas: el
+     titulo solo sobrevive si le queda alguna detras. */
+  .solo-activo tr.grupo-filas:not(:has(~ tr:not(.sin-noticia))) { display: none; }
+  /* Al ocultar filas la tarjeta encoge y las COLUMNAS se recolocan: con masonry
+     eso hace que las de abajo salten de una columna a otra de golpe. Un
+     `transition` no sirve —anima propiedades, no un recalculo de columnas—, asi
+     que se usa la API de View Transitions, que si anima un cambio de
+     disposicion. Cada tarjeta necesita su propio nombre o el navegador funde la
+     pagina entera en vez de mover las piezas; el nombre lo pone el JS. */
+  @supports (view-transition-name: none) {
+    .equipo { view-transition-name: var(--vt); }
+  }
+  ::view-transition-group(*) { animation-duration: .28s; }
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*) { animation-duration: 0s; }
+  }
+  /* Separador entre plantilla y movimientos: una linea, no un hueco. Con el
+     color del club, como la de la cabecera: son las dos divisiones internas de
+     la misma tarjeta y tienen que leerse como una sola familia. */
+  .bloque + .bloque { border-top: 2px solid color-mix(in srgb, var(--tinte, var(--accent)) 45%, transparent); }
+  /* El aviso de "sin plantilla previa" no es un vacio cualquiera: es la
+     explicacion de por que no hay tabla, y se lee como un parrafo. */
+  .caja-nota { line-height: 1.45; }
+  .caja-nota b { color: var(--ink); }
+
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: var(--t-body); }
+  th, td { padding: var(--sp-6px) var(--sp-8px); white-space: nowrap; text-align: center; }
+  th { font-size: var(--t-2xs); color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--line); }
+  th.jug, td.jug { text-align: left; }
+  /* Los nombres de club son largos y con el nowrap general sacaban la tabla de
+     la tarjeta. Es la unica columna que puede partirse sin perder legibilidad:
+     el resto son cifras y fechas. */
+  /* En MAYUSCULAS, como en la cronologia (`.club-frase .nom`). Aqui no lo
+     estaban, y no se veia como una diferencia entre vistas sino como una tabla
+     descuadrada: los clubes de nuestro censo llegan ya en mayusculas —"ALCUDIA
+     BASQUETBOL CLUB"— y los que vienen de resolver un @handle, con el nombre que
+     declara el perfil —"Franklin Pierce Women's Basketball"—, asi que la misma
+     columna mezclaba las dos formas fila con fila. Se normaliza al pintar y no
+     en el dato: el nombre que nos dio la fuente se guarda tal cual. */
+  td.proc { white-space: normal; min-width: 20ch; font-size: var(--t-sm); color: var(--muted); font-weight: 400; text-transform: uppercase; }
+  /* Y a partir de ahi, lo que quepa. Con 20ch fijos —el ancho de un movil— los
+     nombres de club caian a TRES lineas en pantalla grande teniendo la tarjeta
+     medio vacia: la columna del nombre se quedaba 354px para un nombre de 150.
+     Medido sobre las 73 filas de LF2, contando lineas de verdad con
+     `getClientRects()` —el alto de la celda no sirve, lo fija la fila— y
+     vigilando que ninguna tabla desborde su `.scroll`, que aqui es scroll
+     horizontal DENTRO de la tarjeta y es peor que partir una linea:
+        20ch  38 en una linea, 14 en tres o mas
+        28ch  53 …  3
+        34ch  65 …  3        <- de aqui en adelante ya casi no gana
+     Las tres que quedan a tres lineas son irreducibles: nombres larguisimos.
+
+     El techo lo levanto partir los movimientos POR TIPO. Mientras la tabla
+     mezclaba fichajes y renovaciones llevaba una columna Que con la pastilla,
+     y con ella 26ch ya desbordaba en Lucentum y 28ch en dos clubes: hubo que
+     escalonar el ancho e incluso BAJARLO al pasar la rejilla a dos columnas.
+     Sin esa columna no desborda ninguno hasta 36ch, asi que sobran los
+     escalones. Un cambio de estructura que se lleva por delante tres reglas.
+
+     ── El umbral: contra TARJETA y a 560 ─────────────────────────────────────
+
+     Va contra `tarjeta` y NO contra `contenido`, que es donde estaba y donde
+     miente: `contenido` es la envoltura entera, asi que a 1100px de pantalla
+     —dos tarjetas por fila, 524px cada una— daba 1100, encendia el suelo de 34ch
+     y le ponia 240px a una columna que cabia en 141. Con eso la tabla pedia 568
+     en una caja de 524 y devolvia el scroll lateral dentro de la tarjeta.
+
+     Y el numero baja de 668 a 560. El 668 estaba calculado para `contenido`
+     —descontando sus 16px de padding a cada lado— y al mudar la regla se quedo
+     el viejo, que contra la tarjeta no significa lo mismo. Se notaba: en una
+     tarjeta de 649px la procedencia se quedaba en su suelo de 20ch (141px)
+     mientras el nombre se llevaba 352, y «ELLSWORTH COMMUNITY COLLEGE» salia en
+     tres renglones al lado de media columna vacia. A 560 la tabla sigue cabiendo
+     de sobra: 34ch mas el suelo del nombre mas las dos columnas del anuncio son
+     545px. */
+  @container tarjeta (min-width: 560px) { td.proc { min-width: 34ch; } }
+  /* La columna del NOMBRE se come el hueco que sobre. Sin esto, la tabla
+     repartia el ancho entre las columnas segun su contenido y el club de
+     procedencia —que es texto largo— se llevaba mas sitio que la jugadora,
+     dejando ademas un margen muerto a la derecha. */
+  th.jug, td.jug { width: 100%; }
+  /* El rayado va por CLASE y no por `nth-child`, y no es un capricho: al filtrar
+     "solo con anuncio" las filas se esconden con `display: none`, pero
+     `nth-child` las sigue contando. Resultado: dos blancas seguidas, dos grises
+     seguidas, o una tabla que empieza en gris. No hay selector que cuente solo
+     lo visible, asi que la clase la pone el JS mirando el orden REAL de lo que
+     se ve (`rayarVisibles`). */
+  /* `fila-par` y no `par` a secas: `.par` ya existe en esta hoja para la pareja
+     de bloques de la tarjeta, con `display: grid`. Ponersela a un <tr> le daba
+     `display: grid` a la FILA y `block` a sus celdas: se apilaban una debajo de
+     otra y la fila pasaba de 61px a 128px. Una clase corta en una hoja larga
+     choca, y el navegador no avisa. */
+  tbody tr.fila-par { background: color-mix(in srgb, var(--ink) 3%, transparent); }
+  /* ORDEN: despues del rayado a proposito. Empatan en especificidad, asi que
+     gana la ultima, y una fila dudosa tiene que verse dudosa tambien en las
+     pares. Subir este bloque por encima del anterior la apagaria en media
+     tabla sin cambiar la huella. */
+  /* La fila que hay que mirar, entera del mismo ambar: el fondo solo no bastaba
+     —bajando la pagina se pasa de largo— y el color del texto es lo que de
+     verdad frena el ojo. Es el mismo de la pastilla `revisar`, para que se lean
+     como una sola cosa y no como dos avisos distintos.
+     Se salta lo que YA lleva su propio color de fondo: las pastillas de estado
+     son blancas sobre rojo o verde y teñirlas las borraria. */
+  tbody tr.dudoso { background: color-mix(in srgb, var(--revisar) 12%, transparent); }
+  /* Menos en la vista de REVISION, donde todas las filas lo son: un fondo que
+     cubre la tabla entera no señala nada y solo tapa el rayado, que ahi si
+     ayuda a seguir la fila de lado a lado. La clase se queda —el punto, el texto
+     y el motivo siguen colgando de ella—, se va el fondo y nada mas.
+     El rayado hay que REPONERLO a mano en la segunda linea. Quitar el fondo se
+     lleva por delante `.fila-par`, que es otra regla de fondo, y la tabla queda
+     lisa —justo lo que esto venia a recuperar—. Se probo con `revert`, que no
+     vale: vuelve al estilo del NAVEGADOR, no a la regla de autor de al lado. */
+  .en-revision tbody tr.dudoso { background: none; }
+  .en-revision tbody tr.dudoso.fila-par { background: color-mix(in srgb, var(--ink) 3%, transparent); }
+  tbody tr.dudoso td,
+  tbody tr.dudoso td :not(.pill):not(.pill *) { color: var(--revisar); }
+  /* Y el enlace a la fuente, que va con `currentColor` y por tanto ya hereda. */
+  tbody tr.dudoso a { color: var(--revisar); }
+
+  /* La FOTO arriba, y el nombre centrado con lo suyo.
+     Es `align-items: flex-start` en el contenedor y `align-self: center` en el
+     bloque del nombre, y no al reves: la foto es una caja de alto FIJO, asi que
+     lo que se coloca es ella; el nombre mide lo que mide y se centra contra la
+     celda entera.
+     En una fila corta no se nota, pero en movil la descripcion apila dos clubes
+     y la fila pasa de 70 a 135px: la foto centrada quedaba flotando a media
+     altura, lejos del nombre al que pertenece. Arriba, las dos empiezan donde
+     empieza la fila. */
+  .jugadora { display: flex; align-items: flex-start; gap: var(--sp-10px); }
+  /* El nombre arriba tambien, y con 2px de correccion optica: la primera linea
+     de texto no empieza en el borde de su caja -el interlineado reparte hueco
+     arriba y abajo-, asi que a ras de caja la letra sale un par de pixeles por
+     debajo del canto de la foto. Se sube esos 2px para que lo que se alinee sea
+     lo que se VE, que es el alto de la mayuscula y no la caja de linea. */
+  .jugadora > .nombre { align-self: flex-start; margin-top: -2px; }
+  /* Caja de foto de tamaño FIJO con la silueta debajo: las dos capas se apilan
+     en la misma celda de grid, asi que si la imagen no llega —se quita sola con
+     su onerror— queda la silueta y la fila no cambia de alto.
+     Apiladas y no como dos elementos hermanos porque donde las fotos NO estan
+     descargadas (la FEB las sirve desde su servidor) no se sabe al pintar si va
+     a haber foto o no. Donde si lo estan se comporta igual, asi que esta version
+     vale para las dos y no hay dos maneras de pintar la misma casilla. */
+  .retrato {
+    /* `relative` para que la insignia se ancle A LA FOTO. Sin esto se iba al
+       primer ancestro posicionado —la pagina— y el dorsal aparecia flotando
+       suelto en una esquina de la pantalla. */
+    position: relative;
+    display: grid; place-items: center; flex: none;
+    width: 36px; height: 44px; border-radius: 6px; overflow: hidden;
+    background: var(--bg); border: 1px solid var(--line); color: var(--muted);
+  }
+  .retrato > * { grid-area: 1 / 1; }
+  .retrato svg { width: 20px; height: 20px; }
+  .retrato img { place-self: stretch; width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+  /* Miniatura del anuncio. Rectangular y del mismo formato que el retrato: aqui
+     lo que hay que distinguir es la CAMISETA —los clubes publican a la fichada
+     con la del club anterior— pero si las dos columnas no miden igual el ojo
+     salta entre apaisadas y verticales. */
+  /* El enlace no da forma a nada: la caja la pone `.retrato`, que es la misma
+     que usa la plantilla. Aqui solo queda el envoltorio que lleva al anuncio.
+     Tenia su propio tamaño, su borde y su radio duplicados del retrato, y esa
+     copia es la que dejaba la fila vacia cuando la imagen no cargaba. */
+  .foto-anuncio { display: block; flex: none; }
+  .foto-anuncio:hover .retrato { border-color: var(--accent); }
+
+  /* La esquinita de la foto: lo que antes era una columna entera. El dorsal en
+     la plantilla y el semaforo en los movimientos.
+     Va en la esquina INFERIOR DERECHA porque el retrato lleva `object-position:
+     top center`: la cara esta arriba y ahi abajo casi siempre hay camiseta o
+     fondo. Con sombra propia para que se lea igual sobre una foto clara que
+     sobre una oscura, que es la unica forma de no depender de la imagen. */
+  .foto-anuncio { position: relative; }
+  .insignia {
+    position: absolute; right: 0; bottom: 0;
+    display: grid; place-items: center; min-width: 16px; height: 14px;
+    padding: 0 3px; border-radius: 4px 0 5px 0;
+    background: rgba(10, 14, 17, .74); color: #fff;
+    font-size: var(--t-2xs); font-weight: 700; font-variant-numeric: tabular-nums;
+    line-height: 1; letter-spacing: 0;
+  }
+  /* El semaforo dentro de la insignia no necesita fondo: el punto ya es la
+     señal, y la caja oscura detras solo lo ensuciaria. */
+  .insignia:has(.semaforo) { background: none; padding: 0; min-width: 0; }
+  .insignia .semaforo { box-shadow: 0 0 0 2px rgba(10, 14, 17, .55); }
+  /* El semaforo va ARRIBA a la derecha, no abajo, y por dos razones que se
+     juntan justo en la misma esquina:
+       - En movil el faldon de "cantera" cruza el borde INFERIOR de la foto de
+         lado a lado, asi que un punto abajo a la derecha queda debajo de la
+         banda o pisandola.
+       - Y la insignia de la liga tambien vive abajo: N1 pinta ahi el DORSAL
+         (`plantilla.insignia`). Al empezar a marcar tambien las filas de
+         plantilla, las dos caian en el mismo sitio y se tapaban.
+     Cada cosa en su esquina: el dato de la liga abajo, la señal de revision
+     arriba. */
+  .insignia:has(.semaforo) { top: 0; bottom: auto; border-radius: 0 0 0 5px; }
+  /* El FALDON: la pastilla de "cantera" montada en el borde de abajo de la foto.
+     Cruza la caja entera a proposito —de lado a lado, no una etiqueta pequeña
+     en una esquina— porque asi se lee como una banda sobre el retrato y no como
+     algo que se ha caido encima. El `.retrato` ya es `position: relative`.
+     `pointer-events: none` porque en las filas de movimiento la foto es un
+     ENLACE al anuncio: una banda encima que se coma el clic seria un fallo que
+     nadie relaciona con esta regla. */
+  .etq.faldon {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
+    pointer-events: none; text-align: center; border-radius: 0;
+    padding: 1px 0; font-size: var(--t-2xs); line-height: 1.25;
+    background: color-mix(in srgb, var(--panel) 88%, transparent);
+    backdrop-filter: blur(2px);
+  }
+  /* El nombre es lo unico que puede partirse en varias lineas; el resto de la
+     fila son pastillas y fechas. En una tarjeta ancha se le da un suelo de
+     150px, que es lo que hace que la columna no quede como una tira de una
+     palabra por linea. En movil ese suelo sobra: sin el, la tabla de plantilla
+     cabe entera y no hay que arrastrarla de lado para ver el estado, que es
+     justo el dato que se viene a mirar. */
+  /* El suelo de 150px va SIN condicion. Estuvo bajo container query mientras la
+     tabla llevaba las columnas de fecha y de fuentes: en movil no cabia y habia
+     que renunciar a el. Ahora esas dos se esconden en estrecho, asi que cabe en
+     los dos anchos y la excepcion sobra.
+     ORDEN: esto tiene que ir DESPUES de cualquier otra regla de `.nombre` con
+     su misma especificidad. Se puso el suelo arriba, en el bloque de estrecho, y
+     esta linea —que estaba mas abajo— lo mataba con un `min-width: 0`: la regla
+     salia tachada en el inspector y el nombre seguia partiendose.
+     Y es el SUJETO de la fila: la jugadora es de quien habla el dato, no el club
+     de al lado, asi que va en semibold y el club no. */
+  /* BLOQUE, y estuvo en flex.
+     En flex el nombre entero es UN item —es un nodo de texto suelto, o sea un
+     item anonimo—, asi que ocupa toda su linea aunque el apellido termine a
+     media caja: la pastilla de "cantera" no podia compartirla nunca y se iba a
+     una TERCERA linea con sitio de sobra detras ("Ariadna Dominguez / Cordon" y
+     la pastilla debajo). En flujo normal el texto y la pastilla son la misma
+     corriente: la pastilla va detras de la ultima palabra si cabe, y si no cae
+     sola, que es lo que se queria del flex.
+     Las dos lineas de debajo -fecha e iconos- siguen cayendo cada una a la suya
+     porque son `display: block`, sin necesitar el ancho del 100%.
+     SIN `align-self: flex-start`: lo llevaba "para que la caja no se estire al
+     alto de la fila", y eso ya lo impide el `align-items: center` del padre. Lo
+     que hacia de mas era clavarla ARRIBA, y como la celda de al lado centra lo
+     suyo, la fila se leia torcida —14-16px entre los centros de sus celdas, en
+     25 de 25 filas, medido por `auditar-maquetacion`—. */
+  .nombre { white-space: normal; min-width: 150px; font-weight: 600; }
+  /* La pastilla, una palabra mas de la frase: `inline-block` para que conserve
+     su relleno y su fondo, y centrada contra la linea para que no baile. */
+  .nombre > .etq { display: inline-block; vertical-align: middle; margin-left: var(--sp-4px); }
+
+  /* El nombre que enlaza a la federacion NO se pinta como un enlace: ni color de
+     acento ni subrayado permanente. En una tabla donde CADA fila lleva uno, eso
+     seria una columna entera teñida, y el color dejaria de significar nada.
+     Se comporta como enlace al pasar por encima, que es cuando hace falta
+     saberlo. Hereda el color y el peso del nombre, que es lo que se viene a
+     leer. */
+  .a-federacion { color: inherit; text-decoration: none; }
+  .a-federacion:hover { text-decoration: underline; text-underline-offset: 2px; }
+  .a-federacion:focus-visible {
+    outline: 2px solid var(--accent-texto, var(--accent)); outline-offset: 2px; border-radius: 3px;
+  }
+
+  /* ── Donde vive la pastilla de "cantera", segun el ancho ──────────────────
+     Se pintan las DOS en el HTML y aqui se enseña una. No se puede mover una
+     sola con CSS: junto al nombre va dentro del flujo del texto —para caer
+     detras de la ultima palabra— y sobre la foto va absoluta contra OTRO padre,
+     y ningun `position` lleva un nodo de un padre a otro.
+
+     ESCRITORIO manda la de junto al nombre, que es donde estuvo siempre: ahi
+     sobra ancho, la fila no crece por una pastilla mas y se lee como parte del
+     nombre, que es lo que es.
+     MOVIL manda el faldon sobre la foto: alli el nombre ya ocupa dos lineas y
+     la pastilla caia a una tercera, dejando al sujeto de la fila repartido en
+     tres alturas. Sobre la foto no cuesta ni una linea. */
+  .etq.faldon { display: none; }
+  @container contenido (max-width: 559px) {
+    .etq.faldon { display: block; }
+    .nombre > .etq.junto-al-nombre { display: none; }
+  }
+  /* La linea pequeña bajo el nombre, para lo que se sabe de una jugadora y no da
+     para columna propia. Que va escrito ahi lo decide cada liga —es
+     `filaDePlantilla` del CONTRATO— pero la linea es la misma pieza: donde una
+     federacion rellena un dato en 9 de 209 fichas, como columna serian 200
+     huecos vacios. */
+  .ficha { display: block; font-size: var(--t-2xs); color: var(--muted); line-height: 1.3; margin-top: var(--sp-1px); font-variant-numeric: tabular-nums; }
+
+  /* Etiquetas de estado: fondo pleno, sin borde. Cada estado con un tono
+     claramente distinto — antes "alta" y "renueva" eran los dos verdes.
+     Que color va con cual, y por que estos tonos y no otros, justo debajo.
+     El color dice QUE pasa y nada mas. Hubo un `.p-confirmada` morado para lo
+     validado a mano y se quito: se comia el tipo —una baja confirmada dejaba de
+     verse como baja—, que es justo el dato que se viene a buscar. La
+     confirmacion se dice ahora en el tooltip, junto al destino. */
+  .pill { display: inline-block; font-size: var(--t-2xs); font-weight: 700; border-radius: 999px; padding: var(--sp-2px) var(--sp-10px); color: #fff; text-transform: uppercase; letter-spacing: .06em; }
+  /* DOS noticias en la misma fila: quien ficha o renueva en verano y se va en
+     febrero. Van apiladas y en orden cronologico -arriba lo que paso primero-,
+     y con ellas se apilan igual su fecha y sus iconos en las celdas de al lado,
+     para que la segunda linea de cada columna hable de lo mismo.
+
+     `align-items: stretch` con el contenedor en `inline-flex`: el contenedor
+     mide lo que la pastilla mas ancha -no lo que la celda-, asi que estirar
+     iguala las dos entre si sin que ninguna se coma el ancho de la columna.
+     FICHAJE y BAJA tienen cuatro letras de diferencia y desalineadas se leian
+     como dos cosas sueltas en vez de como la historia de una jugadora.
+
+     Solo se emite el envoltorio cuando hay mas de una, asi que esta regla no
+     alcanza a las filas normales. */
+  .pills { display: inline-flex; flex-direction: column; align-items: stretch; gap: var(--sp-4px); }
+  .pills .pill { text-align: center; }
+  td.anuncio .linea, td.col-fuente .linea { display: block; }
+  /* La segunda linea, mas apagada: la de arriba es la noticia con la que empezo
+     la temporada y la de abajo la que manda hoy, pero visualmente la primera es
+     la que sobra si hay prisa. */
+  td.anuncio .linea + .linea, td.col-fuente .linea + .linea { margin-top: var(--sp-4px); }
+  /* VERDE el fichaje y AZUL la renovacion, al reves de como estaban: el verde de
+     "algo nuevo y bueno" pesa mas que la asociacion contraria, y era lo primero
+     que chirriaba al mirar la columna.
+
+     Y un paso mas claros los tres. Estaban en el nivel 700 de la paleta y se
+     leian apagados. El suelo no es el gusto sino el CONTRASTE: el texto va a
+     --t-2xs, o sea 10,4px, que para WCAG es texto normal por mucho que este en
+     negrita —el umbral de "grande" son 18,66px en negrita—, asi que hace falta
+     4,5:1 contra el blanco. Por eso no se baja al 600 entero: el verde emerald
+     600 (#059669) se queda en 3,77:1 y no pasa.
+     Medidos: verde 4,92 · azul 5,17 · rojo 4,83. Van los tres en la misma franja
+     a proposito, para que ninguno parezca mas vivo que los otros. */
+  /* La renovacion en GRAFITO. Es el unico de los tres que no dice nada por si
+     mismo, y aqui eso es la virtud: renovar es que NO pasa nada — sigue quien ya
+     estaba—, asi que el color que le toca es el neutro. El verde y el rojo se
+     reservan para lo que si es noticia.
+     Donde se veia peor era en la tabla de plantilla, la unica que NO tiene
+     fichajes: alli conviven solo renueva y baja, y cualquier color saturado
+     contra el rojo se lee como dos avisos peleandose en vez de como una pareja.
+     Descartados por medicion, no a ojo (tono del fichaje: 165°):
+       azul       choca con el acento —LF2 es azul marino, LFCh celeste—.
+       teal       a 10° del verde del fichaje.
+       violeta    valia (97° y 5,70:1) pero mete un cuarto color a una tabla que
+                  ya tiene tres, para el estado que menos que contar tiene.
+       otro verde los de la misma familia quedan a 21-23°: se leen como el mismo
+                  color, que es justo lo que a esta hoja ya le paso una vez.
+     Y el grafito es `var(--ink)`, EL MISMO con el que esta escrita la pagina, no
+     un gris elegido aparte. Un neutro suelto siempre acaba desafinando contra el
+     texto que tiene al lado; enganchado al token no puede.
+     Lleva `color: var(--panel)` en vez del blanco de `.pill`, y eso es lo que la
+     hace INVERTIRSE con el tema: hoy la web va siempre en claro —nadie pone
+     `data-theme`— pero el token esta declarado y el dia que se encienda `--ink`
+     pasa a ser casi blanco. Con el blanco fijo de `.pill` seria una pastilla
+     blanca con letra blanca; asi es tinta sobre panel en los dos, 15,6:1 en
+     claro y 16,2:1 en oscuro. Es el unico de los tres que puede hacerlo: los
+     otros dos son colores, no tinta.
+     No compite con `.p-nada`, que ademas va hueca y punteada. */
+  .p-alta { background: #068062; }        /* verde: entra alguien nuevo */
+  .p-renovacion { background: var(--ink); color: var(--panel); }  /* la tinta de la pagina */
+  .p-baja { background: #dc2626; }        /* rojo: se va */
+  .p-nada { background: transparent; color: var(--muted); border: 1px dashed var(--line); font-weight: 500; }
+  /* "revisar" en la columna de procedencia: no es un estado del fichaje sino
+     una tarea nuestra, asi que va hueca y del ambar de la fila dudosa en vez de
+     rellena como las otras. Rellena competia con la pastilla del estado, que si
+     habla del movimiento. */
+  .p-revisar { background: transparent; color: var(--revisar); border: 1px solid currentColor; font-weight: 700; }
+  /* «(*)»: por confirmar por Gemini. Hueca y apagada: no es una duda nuestra
+     ni del lector, es un aviso de que falta el visto bueno del modelo. */
+  .p-confirmar { background: transparent; color: var(--muted); border: 1px dashed currentColor; }
+  /* La pastilla de "cantera" es un item mas del flex de `.nombre`: cae de linea
+     sola cuando no cabe, sin forzarla a bloque. Antes iba `display: block` y se
+     llevaba SIEMPRE una linea entera aunque sobrara sitio de sobra. */
+  /* `height: fit-content` porque es un item de un flex y por defecto se estira
+     al alto de la linea: la caja de la pastilla salia mas alta que su texto. */
+  .etq { width: fit-content; height: fit-content;
+    font-size: var(--t-2xs); color: var(--muted); border: 1px solid var(--line);
+    border-radius: 4px; padding: 0 var(--sp-4px); }
+  /* En la columna de procedencia la pastilla va pegada al nombre del equipo y se
+     leia como parte de el —"...CIUDAD DE MOSTOLES cantera"—. Solo aqui: junto al
+     nombre de la jugadora la caja es un flex con su propio `gap`. */
+  /* Y SIN LAS MAYUSCULAS DE LA COLUMNA. `td.proc` va en `text-transform:
+     uppercase` y la pastilla lo heredaba: salia «CANTERA» aqui y «cantera» en la
+     tabla de renovaciones, que es la misma etiqueta. La de renovaciones es la
+     buena —no es un nombre de club, es una nota— asi que se apaga aqui. */
+  .proc .etq { margin-inline-start: var(--sp-5px); text-transform: none; }
+
+  /* Columna de numeros agrupados: se leen mejor alineados por la cifra, y el
+     separador en gris para que no compita con los datos. */
+  th.num, td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  td.num .sep { color: var(--muted); }
+
+  .semaforo { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+  .s-verde { background: var(--ok); }
+  .s-ambar { background: #d97706; }
+  .s-rojo { background: var(--danger); }
+  a { color: var(--accent-texto); }
+  .vacio { color: var(--muted); font-size: var(--t-sm); padding: var(--sp-12px); }
+  /* Fecha y fuente van en COLUMNAS distintas. Juntas en una celda, el par se
+     centraba como un bloque y el icono caia a media columna; en columna propia
+     queda pegado al borde derecho de la tabla.
+     `width: 1%` con la tabla al 100% deja la columna al ancho de su contenido:
+     el resto del espacio se lo reparten las demas y el icono no se separa. */
+  td.anuncio { text-align: right; font-variant-numeric: tabular-nums; }
+  /* Varios iconos caben en la celda: se alinean en fila con un hueco minimo. */
+  th.col-fuente, td.col-fuente { width: 1%; padding-left: var(--sp-4px); white-space: nowrap; }
+  td.col-fuente .fuente { display: inline-grid; vertical-align: middle; margin: 0 var(--sp-1px); }
+  .fuente { display: grid; place-items: center; width: 16px; height: 16px; margin: 0 auto; color: var(--muted); }
+  /* Se tiñe el icono con el color del club, sin recuadro: mismo gesto que la
+     barra de cobertura. */
+  a.fuente:hover { color: var(--tinte, var(--accent-texto)); }
+  .fuente svg { width: 13px; height: 13px; fill: currentColor; }
+  /* Los iconos dibujados a TRAZO no se rellenan, en ningun contexto.
+     Va suelta y no dentro de un contenedor a proposito: esta misma regla vivia
+     encerrada en `.fuente`, asi que al estrenar los enlaces de la cabecera
+     Instagram, la web y la federacion salieron como manchas negras opacas. Una
+     regla de pintado que depende de DONDE se use el icono se rompe la proxima
+     vez que se use en otro sitio.
+     ORDEN: tiene que ir DESPUES de cualquier `X svg { fill: currentColor }`,
+     porque empatan en especificidad (0,1,1) y gana la ultima. Por eso esta al
+     final de la hoja, detras de `.fuente svg` y de `.enlaces svg`.
+     Y por eso mismo: un liga.css que estrene un `X svg { fill: currentColor }`
+     propio se carga DESPUES que esta hoja y vuelve a ganar, asi que tendria que
+     repetir esta excepcion junto a su bloque. Hoy no hace falta en ninguno —los
+     dos sitios donde se pintan iconos viven aqui— pero el dia que haga falta el
+     sintoma es este: Instagram y la web salen como manchas negras opacas. Ya se
+     pago una vez. */
+  svg[data-trazo] { fill: none; stroke: currentColor; stroke-width: 2; }
+
+  /* Cursor de ayuda: sin el, nadie sabe que ahi hay un tooltip con el destino. */
+  .pill.con-pista { cursor: help; }
+  /* Por que hay que mirar ese movimiento, dicho con todas las letras debajo del
+     nombre. El semaforo ambar avisa; esto explica. */
+  .aclara { display: block; color: #a16207; font-size: var(--t-2xs); line-height: 1.3; margin-top: var(--sp-1px); }
+
+  /* ══ MANDOS MAESTROS ═══════════════════════════════════════════════════
+     Vista y Temporada son los dos unicos controles visibles en las TRES
+     vistas. No son un filtro mas: son DONDE ESTAS. Estaban dentro de la barra
+     plegable, asi que para saber si mirabas Cronologia o Revision -y para
+     cambiarlo- habia que desplegarla y buscar. Lo dijo Luismi: «asi es dificil
+     saber si estamos en Cronologia o en Revision, y para cambiar hay que
+     expandir y seleccionar».
+     Ahora salen de la barra: la vista abajo en una isla siempre visible y la
+     temporada arriba en la cabecera. Los <select> de siempre siguen ahi,
+     escondidos, y son los que mandan: esto solo les cambia el valor. Si un dia
+     estorba, se esconde `.isla-vistas` y todo vuelve a funcionar como antes.
+     ═════════════════════════════════════════════════════════════════════ */
+
+  /* ── La vista: isla abajo, del ancho de su contenido ─────────────────
+     Ajustada al contenido y centrada en las TRES resoluciones. Una franja de
+     lado a lado a 1440px se lee como una valla que parte la pagina; y en movil,
+     estirada, pesa mas de lo que aporta. Sin variante por tamaño no hay un solo
+     `if` de dispositivo en el componente. */
+  .isla-vistas {
+    position: fixed; bottom: var(--sp-12px); left: 50%; transform: translateX(-50%);
+    z-index: var(--z-bottom-nav);
+    display: flex; gap: var(--sp-3px); padding: var(--sp-3px);
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-sm);
+    box-shadow: 0 -2px 16px rgba(22, 34, 43, .13);
+  }
+  .isla-vistas button {
+    border: 0; border-radius: var(--r-sm); background: none; cursor: pointer;
+    color: var(--muted); font: inherit; font-size: var(--t-sm); font-weight: 500;
+    height: var(--control-h); padding: 0 var(--sp-12px); white-space: nowrap;
+    display: flex; align-items: center; justify-content: center; gap: var(--sp-7px);
+  }
+  .isla-vistas button:hover { background: var(--form-surface-accent); color: var(--ink); }
+  .isla-vistas button[aria-pressed="true"] { background: var(--accent); color: var(--texto-sobre-accent); }
+  .isla-vistas button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  /* El texto se cae por ANCHO, no por dispositivo: lo decide el JS midiendo, asi
+     que en un movil con las dos vistas del publico las palabras siguen ahi. */
+  .isla-vistas.solo-iconos button { padding: 0; width: 40px; }
+  .isla-vistas.solo-iconos button span { display: none; }
+  /* Y el colchon, que es lo que impide que la isla tape la ultima fila para
+     siempre. Es la unica pega que tiene ponerla abajo, y se paga con esto. */
+  body.con-isla { padding-bottom: calc(var(--control-h) + var(--sp-32px)); }
+
+  /* ── La vista, dicha con todas las letras en el titulo ────────────────
+     La isla es el mando y ESTO es la etiqueta. Con eso se cae la unica pega de
+     los iconos —que hay que aprenderselos—: no hace falta descifrar el icono
+     para saber donde estas, porque lo pone arriba. */
+
+  /* ── La temporada: un paso, donde antes iba el texto ─────────────────
+     Es una SERIE, no una lista: cada verano se añade una y ninguna se va. Un
+     desplegable crece para siempre; el paso mide igual con 2 que con 12.
+     Sin «en curso»: el bloque baja de dos renglones a uno y la cabecera pierde
+     14px de alto, que en movil se notan. */
+  /* 28px y no 32: encogerlo es lo que deja sitio para separarlo del nombre de la
+     competicion, que es lo que se pedia. Ver `.lema`. */
+  .paso-temporada {
+    display: inline-flex; align-items: center; height: 28px; overflow: hidden;
+    background: var(--form-surface); border: 1px solid var(--line); border-radius: var(--r-sm);
+  }
+  .paso-temporada button {
+    border: 0; background: none; cursor: pointer; color: var(--muted); font: inherit;
+    width: 24px; height: 100%; display: grid; place-items: center; padding: 0;
+  }
+  .paso-temporada button:hover:not(:disabled) { background: var(--form-surface-accent); color: var(--ink); }
+  .paso-temporada button:disabled { opacity: .28; cursor: default; }
+  .paso-temporada button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .paso-temporada .val {
+    min-width: 66px; text-align: center; font-size: var(--t-sm); font-weight: 600;
+    font-variant-numeric: tabular-nums; height: 100%; padding: 0 var(--sp-8px);
+    border-inline: 1px solid var(--line); display: grid; place-items: center;
+  }
+  @media (max-width: 560px) { .paso-temporada .val { min-width: 62px; font-size: var(--t-sm); } }
