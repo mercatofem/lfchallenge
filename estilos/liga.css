@@ -1,0 +1,135 @@
+/* Lo propio de LFChallenge Mercato.
+   =================================================================
+   Todo lo comun esta en estilos/base.css, que es una copia generada de
+   mercato-motor/web/base.css. Aqui solo va lo que de verdad cambia cuando la
+   liga es la LF2, y esta hoja se carga DESPUES de la base a proposito: lo de
+   aqui manda.
+
+   Esta hoja deberia ser corta. Si crece, casi seguro que algo que parecia
+   propio no lo era.
+
+   Hasta que el JS convergio habia aqui un tercer apartado, TEMPORAL, con las
+   rejillas y los niveles de encabezado: no eran diferencias de liga sino deuda
+   del JS —esta pagina pintaba una rejilla por grupo y AND Mercato una sola— y
+   se fueron enteras a la base sin tocar una declaracion, solo renombrando
+   selectores. Lo mismo paso con el retrato y con la fila de enlaces. Si vuelve
+   a aparecer un bloque que hay que explicar diciendo "es que la otra web
+   todavia...", no es propio: es deuda, y se marca como tal.
+
+   Mismas dos reglas de siempre: tokens (--sp-Npx, --t-*) y nunca px a mano
+   salvo medidas intrinsecas; y container queries, nunca el ancho de ventana. */
+
+
+/* =================================================================
+   0. El acento de la liga
+   ================================================================= */
+
+/* El cian del logo de LF Challenge, sacado del propio PNG: #3bbcf4 es el color
+   dominante de img/lfchallenge.png, con 87.657 pixeles.
+
+   Solo se declara `--accent`: `--accent-cool` y `--accent-deep` DERIVAN de el
+   en tokens.css y siguen solas. Tocarlas a mano las desengancha y la proxima
+   vez que se cambie el acento se quedan del color viejo.
+
+   Hay que declararlo DOS veces porque tokens.css lo vuelve a fijar dentro de
+   `:root[data-theme="dark"]`, y ese selector gana a un `:root` a secas por
+   especificidad: sin la segunda linea, el tema oscuro seguiria con el de base. */
+:root { --accent: #3bbcf4; }
+:root[data-theme="dark"] {
+  /* En oscuro el cian de marca se lee bien tal cual: no hace falta aclararlo
+     como el marino de LF2, que se confundia con el panel. */
+  --accent: #3bbcf4;
+}
+
+/* Y el acento para TEXTO, que no puede ser el de marca.
+   Medido sobre blanco: #3bbcf4 da 2,17:1 de contraste, y el minimo legible para
+   texto son 4,5:1. Oscurecido hasta 4,56:1 sigue siendo el mismo cian pero se
+   lee. Es la misma separacion que ya existia en la base entre el color de las
+   bandas y el de los enlaces; aqui solo hace falta declararla porque el cian de
+   marca es mucho mas claro que los acentos de las otras dos ligas. */
+:root { --accent-texto: #287ea3; }
+:root[data-theme="dark"] {
+  /* En oscuro el problema es el contrario: el oscurecido no se ve contra el
+     panel. Manda el de marca, que sobre negro da de sobra. */
+  --accent-texto: #3bbcf4;
+}
+
+/* Lo que se escribe ENCIMA de un relleno del acento pleno. Aqui NO se toca: el
+   acento es un cian claro, igual que el de N1, y sobre el manda el texto oscuro
+   que ya trae la base. Blanco sobre este cian da 1,9:1 y no se lee.
+   Es justo lo contrario que en LF2, donde el acento es un marino y hubo que
+   forzar el blanco. */
+
+/* =================================================================
+   1. Propio de la LF2
+   ================================================================= */
+
+  /* La marca —escudo, nombre y el envoltorio que los separa— esta en la base:
+     es el patron de cualquier liga que tenga logo, y LFChallenge lo estrena sin
+     tocar nada. Aqui solo se elige el fichero, en el index.html.
+
+     El tinte de esta liga es la CAMISETA TITULAR de la ficha de club de la FEB:
+     no hay un campo "color", se lee el relleno del SVG de la camiseta. Es el
+     color con el que juega el equipo y punto; sustituirlo por otro que se vea
+     mejor seria pintar de azul a un equipo que viste de blanco.
+     La FRANJA de color esta en la base: el color del club lo tienen las dos
+     ligas, y la tarjeta se lee igual. Lo que si es propio de aqui es esto: */
+
+  /* la factura de leer el color de la camiseta. Dos clubes de LF2
+     juegan de BLANCO (Ciudad de Mostoles y Lucentum), y un blanco sobre panel
+     claro no se ve. El dato no se toca —es su color— asi que el problema se
+     arregla donde toca, que es aqui: la franja se perfila con una linea para
+     que el blanco se lea COMO blanco, en vez de desaparecer o de convertirse en
+     otro color. */
+  .equipo.tinte-claro .cab {
+    border-top-color: var(--tinte);
+    box-shadow: inset 0 3px 0 -1px var(--line);
+    background: color-mix(in srgb, var(--tinte) 55%, var(--panel));
+  }
+  /* Lo mismo, en los dos sitios donde la base tiñe con `--tinte` sobre un fondo
+     claro. La barra de cobertura corre sobre `--line`, que es gris claro, y el
+     icono de fuente sobre el panel: en un equipo de blanco las dos cosas se
+     quedaban invisibles justo al pasar el raton, que es cuando tienen que
+     verse. Para esos, el acento de la casa. */
+  .equipo.tinte-claro .barra i { background: var(--accent); }
+  .equipo.tinte-claro a.fuente:hover { color: var(--accent); }
+  /* Y las separaciones internas, que la base tiñe tambien con `--tinte`: en un
+     equipo de blanco la tarjeta se quedaba SIN ninguna linea, con la cabecera y
+     la plantilla pegadas y sin nada que las separase. Vuelven al gris del
+     contorno, que es lo que hacian antes de que el color entrara aqui. */
+  .equipo.tinte-claro .cab { border-bottom-color: var(--line); }
+  .equipo.tinte-claro .bloque + .bloque { border-top-color: var(--line); }
+
+  /* El nombre del equipo ES el enlace a su ficha en la FEB: es lo que esa ficha
+     nombra, asi que no hace falta un icono aparte. La ficha publica de equipo
+     no tiene equivalente en la FAB, asi que esto es propio de las ligas FEB.
+     Se mantiene del color del texto para no convertir el titulo en un enlace
+     chillon; el subrayado al pasar por encima es lo que dice que se puede
+     pulsar. */
+  .nombre-club a { color: inherit; text-decoration: none; }
+  .nombre-club a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .nombre-club a:focus-visible { outline: 2px solid var(--tinte, var(--accent)); outline-offset: 2px; border-radius: 3px; }
+  /* ⚠️ AQUI VIVIA `.etiqueta-feb` Y NO LA EMITE NADIE. Retirada el 16-08.
+     La idea sigue siendo buena —el patrocinador cambia cada año y el club no,
+     asi que el nombre grande es el del club y el del equipo inscrito iria
+     debajo— pero quien pinta hoy esa segunda linea es `.club-lugar`, y esta
+     regla llevaba muerta desde antes de la convergencia. Comprobado antes de
+     borrarla: cero apariciones en el JS que genera el HTML y cero en el
+     index.html. Si algun dia se quiere esa distincion, se escribe con el
+     nombre de lo que la emita. */
+
+
+/* =================================================================
+   2. Contra el orden de carga
+   ================================================================= */
+
+  /* Sin reglas, y conviene que se note por que.
+     base.css declara `svg[data-trazo] { fill: none }` al FINAL de la hoja, para
+     todos los iconos dibujados a trazo. Cualquier `X svg { fill: currentColor }`
+     que se escriba AQUI empata con ella en especificidad (los dos son 0,1,1) y
+     esta hoja se carga despues, asi que ganaria: Instagram y la web volverian a
+     salir como manchas negras opacas. Ya se pago una vez.
+     Hoy no hay ninguna regla asi en esta hoja —los dos sitios donde se pintan
+     iconos, `.fuente` y `.enlaces`, viven en la base— pero el dia que se
+     estrene una, la excepcion hay que repetirla aqui pegada a su bloque:
+     `.loquesea svg[data-trazo] { fill: none; stroke: currentColor; stroke-width: 2; }` */
