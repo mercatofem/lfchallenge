@@ -1,0 +1,717 @@
+:root {
+  --font-sans: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --font-serif: "Chiron GoRound TC", "Roboto", sans-serif;
+  --app-shell-height: 58px;
+  --bg: #f2f4f7;
+  --bg-soft: #ffffff;
+  --ink: #19252d;
+  --muted: #5d6a73;
+  --panel: #ffffff;
+  /* Fondo de la cabecera superior (.app-shell): tinte de accent para diferenciarla del
+     contenido (--bg) y de las tarjetas (--panel/blanco); NO blanco plano. */
+  --nav-bg: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  --line: rgba(25, 37, 45, 0.12);
+  /* Accent: el usuario solo elige --accent (Ajustes › Acento). Las otras dos teal se
+     DERIVAN en CSS (siguen solas); --accent-contrast lo recalcula JS por luminancia
+     cuando hay color custom (texto legible sobre el accent). */
+  --accent: #007a33;
+  --accent-cool: var(--accent);
+  --accent-deep: color-mix(in srgb, var(--accent) 80%, #000);
+  /* Texto SOBRE el accent (botones primary). El accent es verde OSCURO (#007a33) en ambos temas
+     → contraste BLANCO. Antes #181818 (heredado del teal): dejaba el texto oscuro sobre el verde. */
+  --accent-contrast: #f4fbfb;
+  /* Rampa clara sobre fondo oscuro (máx = la más clara). */
+  --radar-ref-max: #e5e7eb;
+  --radar-ref-avg: #9ca3af;
+  --radar-ref-min: #4b5563;
+  /* Chevron de los <select>: data-URI teñido con el accent. JS (setAccent + boot anti-flash)
+     lo regenera al personalizarlo; un data-URI no puede leer var(--accent). Por defecto = --accent. */
+  --form-chevron: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23007a33' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  /* Líneas de referencia del radar (máx/media/mín). Theme-aware: en CLARO grises medios
+     para que la del máximo se vea sobre el fondo claro; en OSCURO, la rampa clara de siempre. */
+  --radar-ref-max: #94a3b8;
+  --radar-ref-avg: #64748b;
+  --radar-ref-min: #334155;
+  --ok: #2b8354;
+  --danger: #c0392b;
+  --shadow: 0 6px 18px rgba(22, 34, 43, 0.06);
+  --radius: 6px;
+  --button-radius: 10px;
+  --shell-bg: #ffffff;
+  --shell-line: rgba(25, 37, 45, 0.08);
+  --shell-link: rgba(25, 37, 45, 0.06);
+  --shell-link-active: linear-gradient(135deg, rgba(0, 122, 51, 0.96) 0%, rgba(0, 95, 40, 0.98) 100%);
+  --shell-note: rgba(93, 106, 115, 0.92);
+  --panel-border: rgba(25, 37, 45, 0.06);
+  --player-callout: linear-gradient(180deg, #f7f9fb 0%, #eef2f5 100%);
+  --subcard-border: 1px solid rgba(25, 37, 45, 0.08);
+  --subcard-shadow: 0 6px 18px rgba(22, 34, 43, 0.04);
+  --form-surface: #ffffff;
+  --form-surface-soft: #e7edf0;
+  --form-surface-accent: color-mix(in srgb, var(--accent) 8%, transparent);
+  --form-placeholder: rgba(90, 106, 113, 0.8);
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+  --ghost-bg: rgba(29, 111, 120, 0.08);
+  --inline-bg: #fafafa;
+  --z-shell: 50;
+  --z-dashboard-sticky: 40;
+  --z-bottom-nav: 90;
+  --z-modal: 1000;
+
+  /* ── Identity card (jugador/equipo) ──────────────────────────────────────
+     Sobreescribe estos valores en 05-responsive.css por breakpoint;
+     los elementos de la tarjeta los consumen directamente. */
+  --id-cols:       100px minmax(0, 1fr);
+  --id-p:          var(--sp-14px);
+  --id-gap:        var(--sp-14px);
+  --id-photo-w:    100px;
+  --id-photo-h:    126px;
+  --id-mark:       72px;
+  --id-name-fs:    clamp(1.05rem, 1.5vw, 1.35rem);
+  --id-club-fs:    var(--t-body);
+  --id-phase-fs:   var(--t-sm);
+
+  /* ── Escala tipográfica ───────────────────────────────────────────────────
+     Usar estas variables en todos los componentes nuevos (ds/).
+     Los elementos HTML base (h1-h4, p, small) siguen heredando del agente UA
+     salvo que un bloque de la app los sobreescriba explícitamente. */
+  --t-hero:  clamp(1.5rem, 4vw, 2.2rem);
+  --t-h1:    clamp(1.2rem, 3vw, 1.7rem);
+  --t-h2:    clamp(1rem, 2vw, 1.3rem);
+  --t-md:    1rem;    /* subtítulo fijo (hueco real entre h3 y el clamp h2) */
+  --t-h3:    0.95rem;
+  --t-body:  0.9rem;
+  --t-sm:    0.82rem;
+  --t-xs:    0.75rem;
+  --t-label: 0.7rem;
+  --t-2xs:   0.65rem; /* micro-labels (eyebrow, chips, dorsales) */
+
+  /* Números/glifos de display (marcadores, valores de métrica, iniciales de
+     escudo). FIJOS a propósito: viven en cajas de tamaño fijo y no deben
+     clampar como los títulos de texto. */
+  --t-num:    1.3rem;
+  --t-num-lg: 1.5rem;
+  --t-num-xl: 1.8rem;
+
+  /* ── Espaciado (rejilla de 2px, nombres por valor) ───────────────────────
+     --sp-Npx == N px. La app usa de facto una rejilla de 2px; estos tokens la
+     formalizan (mismo valor → cero cambio visual). Núcleo 2–24 + finos impares
+     (1/3/5/7/9/11, ajuste fino heredado) + grandes puntuales (30/32/56). */
+  --sp-1px: 1px;    --sp-2px: 2px;    --sp-3px: 3px;    --sp-4px: 4px;
+  --sp-5px: 5px;    --sp-6px: 6px;    --sp-7px: 7px;    --sp-8px: 8px;
+  --sp-9px: 9px;    --sp-10px: 10px;  --sp-11px: 11px;  --sp-12px: 12px;
+  --sp-14px: 14px;  --sp-16px: 16px;  --sp-18px: 18px;  --sp-20px: 20px;
+  --sp-22px: 22px;  --sp-24px: 24px;  --sp-30px: 30px;  --sp-32px: 32px;
+  --sp-56px: 56px;
+
+  /* ── Breakpoints OFICIALES (mobile-first) ─────────────────────────────────────
+     Móvil  : ≤ 600px    (base, sin query — el móvil más ancho ~480px cabe holgado)
+     Tablet : 600–900px  (modo compacto: cabecera compact, edge-to-edge, mode-tabs)
+     Desktop: > 900px     (cabecera normal, márgenes; iPad portrait 810–834px = tablet)
+     600 y 900 son los breakpoints estándar de Material UI (sm/md). 360/380px solo
+     para ajuste fino de teléfono estrecho. CSS no admite var() en condiciones @media,
+     así que el número va a mano: este es el SET oficial (se eliminó el legacy 560).
+     BLOQUES → @container mobile-first (min-width); SHELL (panel/cabecera) → @media de
+     viewport. OJO: un @container 600 dispara a un viewport algo mayor (el contenedor
+     es más estrecho que la pantalla por el padding del panel). */
+
+  /* Separación entre BLOQUES de una vista (gaps de secciones, dashboards, rejillas).
+     Mobile-first: COMPACTO en móvil/tablet (≤900, mismo tramo que --panel-pad), ensancha
+     a >900 (override más abajo). Mismo valor en TODAS las vistas vía este token. NO usar
+     como padding interior — para eso está --block-pad. */
+  --block-gap: var(--sp-12px);
+  /* Padding INTERIOR de cards/paneles (radar, mapa de tiro, table-wrap…). Compacto en
+     móvil/tablet (≤900), ensancha a >900. Coherente con --panel-pad (12→24 en 900). */
+  --block-pad: var(--sp-12px);
+  /* Separación INTERNA de un bloque (p.ej. heading ↔ tabla). Más pequeña. */
+  --inner-block-gap: var(--sp-8px);
+
+  /* Padding del PANEL exterior de cada vista (.panel) y referencia para sangrar
+     elementos a borde de viewport. 24px en desktop; pasa a 12px en tablet/móvil
+     (≤900px, override en 05-responsive.css). */
+  --panel-pad: var(--sp-24px);
+
+  /* ── Radios ──────────────────────────────────────────────────────────────
+     Los tokens --radius y --button-radius existentes se mantienen para
+     compatibilidad; usar --r-* en componentes nuevos. */
+  --r-sm:   6px;
+  --r-md:   10px;
+  --r-lg:   14px;
+  --r-pill: 999px;
+
+  /* ── Altura de control ─────────────────────────────────────────────────────
+     Altura común de los controles interactivos de contenido (switch .segmented,
+     botones de icono .btn--icon, toggles/selects de toolbar). Así cualquier control
+     que conviva en una cabecera/toolbar mide lo mismo y todo encaja sin parches. */
+  --control-h: 36px;
+}
+
+/* >900px (desktop): el padding/gap de bloques se ensancha (móvil/tablet arrancan
+   compactos en :root). MISMO breakpoint que --panel-pad (12→24 en 900), para que en
+   tablet no quede el bloque a 24 mientras el panel está a 12. Afecta a todo lo que usa
+   var(--block-pad)/var(--block-gap): .player-table-wrap, dashboards, radar, mapa, etc. */
+@media (min-width: 900px) {
+  :root {
+    --block-pad: var(--sp-24px);
+    --block-gap: var(--sp-24px);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #212121;
+  --bg-soft: linear-gradient(180deg, #363636 0%, #303030 100%);
+  --ink: #f2f5f7;
+  --muted: #b4bcc1;
+  --panel: #181818;
+  /* Cabecera superior (.app-shell): tinte de accent sobre un base más oscuro, distinto del
+     contenido (--bg #212121); NO el gris oscuro plano. */
+  --nav-bg: color-mix(in srgb, var(--accent) 16%, #161616);
+  --line: rgba(255, 255, 255, 0.1);
+  --accent: #007a33;
+  --accent-cool: var(--accent);
+  --accent-deep: color-mix(in srgb, var(--accent) 80%, #000);
+  --accent-contrast: #f4fbfb;
+  --ok: #59c889;
+  --danger: #e05252;
+  --shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+  --shell-bg: #181818;
+  --shell-line: rgba(255, 255, 255, 0.08);
+  --shell-link: rgba(255, 255, 255, 0.04);
+  --shell-link-active: linear-gradient(135deg, rgba(10, 142, 167, 0.92) 0%, rgba(0, 117, 141, 0.94) 100%);
+  --shell-note: rgba(180, 188, 193, 0.96);
+  --panel-border: rgba(255, 255, 255, 0.05);
+  --player-callout: linear-gradient(180deg, #2a2a2a 0%, #212121 100%);
+  --subcard-border: 0 solid transparent;
+  --subcard-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  --form-surface: #242424;
+  --form-surface-soft: #303030;
+  --form-surface-accent: color-mix(in srgb, var(--accent) 14%, transparent);
+  --form-placeholder: rgba(180, 188, 193, 0.78);
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  --inline-bg: #333333;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.lucide-icon {
+  display: block;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+}
+
+/* Avatares/escudos por defecto (icono inline, stroke=currentColor): SIEMPRE el accent de
+   Ajustes, para que coincidan con los placeholders del proxy de imágenes (que la cookie
+   pfTone tiñe con el mismo accent). Antes heredaban currentColor del contexto (a veces el
+   tono del equipo, a veces el teal por defecto) → los 3 colores que se veían mezclados. */
+.fallback-icon--player,
+.fallback-icon--team {
+  color: var(--accent);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(0, 122, 51, 0.08), transparent 24%),
+    radial-gradient(circle at top right, rgba(25, 37, 45, 0.06), transparent 24%),
+    linear-gradient(180deg, #f7f9fb 0%, #f2f4f7 100%);
+  min-height: 100vh;
+}
+
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at top left, rgba(10, 142, 167, 0.08), transparent 24%),
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.03), transparent 22%),
+    linear-gradient(180deg, #242424 0%, #212121 100%);
+}
+
+.background-lines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(0, 122, 51, 0.08), transparent 18%),
+    linear-gradient(transparent 97%, rgba(29, 43, 49, 0.04) 100%);
+  opacity: 0.8;
+}
+
+:root[data-theme="dark"] .background-lines {
+  background:
+    radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 18%),
+    linear-gradient(transparent 97%, rgba(255, 255, 255, 0.03) 100%);
+  opacity: 0.8;
+}
+
+.app-shell {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-shell);
+  /* Safe-areas: el notch (arriba) y, en horizontal, los notches laterales. El
+     fondo borroso rellena esas zonas y el contenido nunca queda por debajo. */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
+  /* Sin backdrop-filter: la nav es 100% opaca (--shell-bg sólido), así no se ve
+     contenido por detrás al hacer scroll (se notaba en tema oscuro). */
+  background: var(--nav-bg);
+  border-bottom: 2px solid color-mix(in srgb, var(--accent-cool) 45%, var(--panel-border));
+}
+
+.app-shell__inner {
+  width: min(1220px, calc(100% - 32px));
+  margin: 0 auto;
+  min-height: 54px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--sp-8px);
+  align-items: center;
+}
+
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8px);
+  min-width: 0;
+}
+
+/* El compás enlaza a Inicio (botón sin chrome; el <img> conserva su tamaño). */
+.brand-lockup__home {
+  display: flex;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: var(--r-md);
+  cursor: pointer;
+}
+
+.brand-lockup__home:focus-visible {
+  outline: 2px solid var(--accent-cool);
+  outline-offset: 2px;
+}
+
+/* El compás monocromo se pinta con el ACCENT vía máscara (así sigue el color de Ajustes).
+   El del footer del sidebar (.sidebar__mark, <img>) se queda en verde fijo. */
+.brand-lockup__mark {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  display: block;
+  background-color: var(--accent);
+  -webkit-mask: url(/generated/logo/sparkle.svg) center / contain no-repeat;
+  mask: url(/generated/logo/sparkle.svg) center / contain no-repeat;
+}
+
+/* Selector de entidad en la cabecera: eyebrow (vista) sobre nombre + caret.
+   Tocable (abre el picker) solo en Equipo/Jugador (.is-selectable). */
+.shell-entity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-1px);
+  min-width: 0;
+  max-width: 100%;
+  padding: var(--sp-4px) var(--sp-8px) var(--sp-4px) var(--sp-6px);
+  margin: -4px -2px;
+  border-radius: var(--r-md);
+  cursor: default;
+  text-align: left;
+}
+
+.shell-entity:disabled {
+  opacity: 1;
+}
+
+.shell-entity.is-selectable {
+  cursor: pointer;
+}
+
+/* Sin caja gris al hover: feedback sutil en el nombre (acento). El foco por teclado
+   sí mantiene un anillo visible (accesibilidad). */
+.shell-entity.is-selectable:hover .shell-entity__name {
+  color: var(--accent-cool);
+}
+.shell-entity.is-selectable:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Wordmark de la cabecera: SVG inline (<use href="#brand-wordmark">), no <img>, para poder teñirlo:
+   los trazos verdes van a currentColor → siguen al acento; el relleno de "SCOUT" se queda blanco.
+   Altura igualada a la ALTURA DE MAYÚSCULA del texto que había (--t-2xs = 10.4px → ~7.4px);
+   el ancho se fija a mano porque un <svg> inline no deriva el aspecto del viewBox (1024/94 ≈ 10.9). */
+.shell-entity__eyebrow {
+  display: block;
+  height: 13px;
+  width: 142px;
+  color: var(--accent-cool);
+}
+
+.shell-entity__main {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-5px);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.shell-entity__name {
+  min-width: 0;
+  font-size: var(--t-h3);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shell-entity__caret {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+}
+
+.shell-entity__caret svg {
+  width: 16px;
+  height: 16px;
+}
+
+.shell-entity:not(.is-selectable) .shell-entity__caret {
+  display: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.shell-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6px);
+  justify-self: end;
+  flex-shrink: 0;
+}
+
+.layout {
+  width: min(1220px, calc(100% - 32px));
+  margin: 0 auto;
+  /* El padding-top iguala el margen lateral (el width deja 16px a cada lado via
+     100%-32px), así el aire arriba del primer bloque coincide con el de los lados.
+     El padding-inferior deja aire al final (+ safe-area del gesto de navegación). */
+  padding: 16px 0 calc(env(safe-area-inset-bottom, 0px) + 24px);
+}
+
+.panel {
+  background: var(--panel);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--panel-pad);
+  margin-bottom: var(--sp-20px);
+}
+
+.workspace-panel {
+  display: none;
+}
+
+.workspace-panel.is-active {
+  display: block;
+  animation: workspace-fade 180ms ease;
+}
+
+@keyframes workspace-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.eyebrow {  
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: var(--t-xs);
+  color: var(--accent-cool);
+  font-weight: 700;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--font-sans);
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: clamp(2.3rem, 4vw, 4.4rem);
+  max-width: 12ch;
+}
+
+h2 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.lead {
+  max-width: 68ch;
+  color: var(--muted);
+  line-height: 1.55;
+  margin: var(--sp-16px) 0 0;
+}
+
+.summary-grid {
+  display: grid;
+  gap: var(--sp-14px);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-top: var(--sp-24px);
+}
+
+.balanced-grid--6 {
+  container-type: inline-size;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.summary-card,
+.player-table-wrap {
+  min-width: 0;
+  border-radius: var(--radius);
+  border: var(--subcard-border);
+  box-shadow: var(--subcard-shadow);
+  background: var(--player-callout);
+  padding: var(--block-pad);
+}
+
+.player-table-wrap > .player-matches-scroll {
+  border-radius: var(--radius);
+  border: var(--subcard-border);
+  border-bottom: 0 none;
+}
+
+/* Variante "a sangre": el card contiene SOLO la tabla, sin padding, ajustada al
+   contenedor. El heading va fuera (hermano del card). El borde/redondeo los pone
+   el card; overflow hidden recorta la tabla a las esquinas. */
+.player-table-wrap--flush {
+  padding: 0;
+  overflow: hidden;
+}
+
+.player-table-wrap--flush > .player-matches-scroll {
+  border: 0;
+  border-radius: 0;
+  padding-top: 0;
+}
+
+.summary-grid + .player-table-wrap {
+  margin-top: var(--sp-14px);
+}
+
+.summary-card strong {
+  display: block;
+  font-size: var(--t-num-xl);
+  color: var(--accent-deep);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-6px);
+  padding: var(--sp-6px) var(--sp-10px);
+  border-radius: var(--radius);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Botón de refrescar dentro de la pill "en vivo" del marcador. */
+.status-pill__refresh {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  margin: -2px -3px -2px 0;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 50%;
+  opacity: 0.85;
+}
+
+.status-pill__refresh:hover,
+.status-pill__refresh:focus-visible {
+  opacity: 1;
+  outline: none;
+}
+
+.status-pill__refresh svg {
+  width: 14px;
+  height: 14px;
+}
+
+.status-pill__refresh.is-loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.status-pill__refresh.is-loading svg {
+  animation: status-pill-spin 0.9s linear infinite;
+}
+
+@keyframes status-pill-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.status-ok {
+  background: rgba(43, 131, 84, 0.14);
+  color: var(--ok);
+}
+
+.status-warning {
+  background: rgba(164, 120, 49, 0.14);
+  color: #a47831;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-12px);
+  align-items: end;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+select,
+.form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: var(--sp-6px) var(--sp-32px) var(--sp-6px) var(--sp-12px);
+  border: 1px solid color-mix(in srgb, var(--accent-cool) 18%, var(--line));
+  border-radius: 8px;
+  background-color: var(--form-surface);
+  background-image: var(--form-chevron);
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px 12px;
+  color: var(--ink);
+  font-size: var(--t-sm);
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease;
+}
+
+select:hover,
+.form-select:hover {
+  border-color: color-mix(in srgb, var(--accent-cool) 38%, var(--line));
+  background-color: color-mix(in srgb, var(--accent-cool) 4%, var(--form-surface));
+}
+
+select:focus-visible,
+.form-select:focus-visible {
+  outline: none;
+  border-color: var(--accent-cool);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-cool) 22%, transparent);
+}
+
+select:disabled,
+.form-select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+select option,
+.form-select option {
+  background: var(--form-surface);
+  color: var(--ink);
+}
+
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] .form-select {
+  background-color: color-mix(in srgb, var(--form-surface) 80%, #000 20%);
+  border-color: color-mix(in srgb, var(--accent-cool) 22%, rgba(255, 255, 255, 0.08));
+}
+
+:root[data-theme="dark"] select:hover,
+:root[data-theme="dark"] .form-select:hover {
+  border-color: color-mix(in srgb, var(--accent-cool) 50%, rgba(255, 255, 255, 0.1));
+  background-color: color-mix(in srgb, var(--accent-cool) 8%, var(--form-surface));
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-h3);
+}
+
+.data-table th,
+.data-table td {
+  text-align: left;
+  padding: var(--sp-10px) var(--sp-12px);
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+.data-table th {
+  color: var(--accent-cool);
+  font-size: var(--t-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+
